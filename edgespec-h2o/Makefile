@@ -1,6 +1,6 @@
 # EdgeSpec-H2O Makefile
 
-.PHONY: check test gate1 gate2 gate3 lint clean logs
+.PHONY: check test gate1 gate1-laptop gate1-fast gate1-full gate2 gate3 lint clean logs
 
 # Environment check
 check:
@@ -23,6 +23,25 @@ test-model:
 # Gate runs
 gate1:
 	bash bench/gate1.sh
+
+# Gate 1 — laptop mode (no weights, runs only code/tokenizer/quant checks)
+gate1-laptop:
+	bash bench/gate1.sh --no-weights --skip-thermal --skip-kernel
+
+# Gate 1 — fast Nano run (skip 10-min thermal soak)
+gate1-fast:
+	bash bench/gate1.sh \
+		--weights data/weights/opt-125m-4bit.edgespec \
+		--model-size 125m \
+		--skip-thermal
+
+# Gate 1 — full Nano run (all checks including thermal soak)
+gate1-full:
+	bash bench/gate1.sh \
+		--weights data/weights/opt-1.3b-4bit.edgespec \
+		--model-size 1.3b \
+		--decode-tps-min 8 \
+		--mem-budget-mb 3800
 
 # Offline quantization (laptop only)
 quantize-125m:

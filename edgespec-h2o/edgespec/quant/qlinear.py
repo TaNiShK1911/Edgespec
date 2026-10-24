@@ -157,7 +157,7 @@ def pack_int4(weight_fp, scales, zeros, group_size=128):
     zeros_expanded = zeros.unsqueeze(2)
 
     # Quantize: int_val = round(weight / scale + zero)
-    int_val = torch.round(weight_fp / (scales_expanded + 1e-10) + zeros_expanded)
+    int_val = torch.round((weight_fp / (scales_expanded + 1e-10) + zeros_expanded).float())
     int_val = int_val.clamp(0, 15).to(torch.uint8)
     int_val = int_val.reshape(out_features, in_features)
 
@@ -194,8 +194,8 @@ def compute_scales_zeros(weight, group_size=128, bits=4):
     w_max = weight_groups.max(dim=2)[0]
 
     scales = (w_max - w_min) / maxq
-    scales = scales.clamp(min=1e-10)
-    zeros = -w_min / scales  # zero-point in quantized domain
+    scales = scales.float().clamp(min=1e-10)
+    zeros = -w_min.float() / scales  # zero-point in quantized domain
 
     return scales.to(torch.float16), zeros.to(torch.float16)
 
@@ -224,8 +224,8 @@ def verify_pack_unpack(weight_fp, group_size=128, bits=4):
     in_features = weight_fp.shape[1]
     n_groups = in_features // group_size
     abs_diff_grouped = abs_diff.reshape(out_features, n_groups, group_size)
-    scales_expanded = scales.unsqueeze(2).clamp(min=1e-10)
-    normalised = abs_diff_grouped / scales_expanded
+    scales_expanded = scales.unsqueeze(2).float().clamp(min=1e-10)
+    normalised = abs_diff_grouped.float() / scales_expanded
     norm_error = normalised.max().item()
 
     # A correctly rounded value should be within 0.5 steps; allow 0.6 for FP16 noise

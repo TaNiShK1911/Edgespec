@@ -29,3 +29,8 @@ edgespec-h2o/data/golden/*.bin
 # Logs and transient run outputs
 *.swp
 *.swo
+*.whl
+*.zip
+wheels/
+*.egg-info/
+*.egg-link

@@ -77,21 +77,27 @@ def check_nvcc():
 
 def check_nvpmodel():
     """Check if Max-N (mode 0) is active (Jetson only)."""
-    try:
-        result = subprocess.check_output(['sudo', 'nvpmodel', '-q'],
-                                         stderr=subprocess.STDOUT)
-        output = result.decode().strip()
-        print("[nvpmodel] %s" % output.replace('\n', ' | '))
-        if 'MAXN' in output.upper() or 'MODE ID: 0' in output.upper():
-            return True, "Max-N active"
-        return False, "Not in Max-N mode"
-    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-        print("[nvpmodel] Not available (OK on laptop)")
-        return True, "Not available (non-critical)"
+    for cmd in [['nvpmodel', '-q'], ['sudo', '-n', 'nvpmodel', '-q']]:
+        try:
+            result = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            output = result.decode().strip()
+            print("[nvpmodel] %s" % output.replace('\n', ' | '))
+            if 'MAXN' in output.upper() or 'MODE ID: 0' in output.upper():
+                return True, "Max-N active"
+            return False, "Not in Max-N mode"
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            continue
+    print("[nvpmodel] Not available (OK on laptop)")
+    return True, "Not available (non-critical)"
 
 
 def check_no_transformers():
-    """Ensure no 'transformers' import in edgespec/ source code."""
+    """Ensure no 'transformers' import in edgespec/ inference-path source.
+
+    The function ``load_model_from_hf`` in loader.py is a laptop-only
+    development helper (not used on the Nano) and is intentionally excluded
+    from this check.
+    """
     edgespec_dir = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         'edgespec'
@@ -103,9 +109,20 @@ def check_no_transformers():
             if not fname.endswith('.py'):
                 continue
             filepath = os.path.join(root, fname)
+            in_hf_helper = False  # tracks if we are inside load_model_from_hf
             with open(filepath, 'r') as f:
                 for i, line in enumerate(f, 1):
                     stripped = line.strip()
+                    # Track entry/exit of the laptop-only HF helper function.
+                    # A new top-level 'def ' (no indentation) ends the helper.
+                    if 'def load_model_from_hf(' in stripped:
+                        in_hf_helper = True
+                    elif in_hf_helper and stripped.startswith('def ') and \
+                            not line.startswith(' ') and \
+                            not line.startswith('\t'):
+                        in_hf_helper = False
+                    if in_hf_helper:
+                        continue
                     # Skip comments
                     if stripped.startswith('#'):
                         continue

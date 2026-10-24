@@ -21,6 +21,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class LayerNorm(nn.LayerNorm):
+    """LayerNorm that supports Half on CPU by executing in float32 when necessary."""
+
+    def forward(self, input):
+        if input.is_cuda or input.dtype != torch.float16:
+            return F.layer_norm(input, self.normalized_shape, self.weight, self.bias, self.eps)
+        w = self.weight.float() if self.weight is not None else None
+        b = self.bias.float() if self.bias is not None else None
+        return F.layer_norm(input.float(), self.normalized_shape, w, b, self.eps).half()
+
+
+
 class KVCache(object):
     """Simple pre-allocated KV cache for one layer.
 
@@ -176,7 +188,12 @@ class OPTMLP(nn.Module):
         self.fc2 = nn.Linear(d_ffn, d_model, bias=True)
 
     def forward(self, x):
-        return self.fc2(F.relu(self.fc1(x)))
+        h = self.fc1(x)
+        if not h.is_cuda and h.dtype == torch.float16:
+            h = F.relu(h.float()).half()
+        else:
+            h = F.relu(h)
+        return self.fc2(h)
 
 
 class OPTDecoderLayer(nn.Module):
@@ -187,10 +204,10 @@ class OPTDecoderLayer(nn.Module):
         super(OPTDecoderLayer, self).__init__()
         self.pre_layernorm = pre_layernorm
 
-        self.self_attn_layer_norm = nn.LayerNorm(d_model, eps=layer_norm_eps)
+        self.self_attn_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
         self.self_attn = OPTAttention(d_model, n_heads, dtype=dtype)
 
-        self.final_layer_norm = nn.LayerNorm(d_model, eps=layer_norm_eps)
+        self.final_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
         self.mlp = OPTMLP(d_model, d_ffn, dtype=dtype)
 
     def forward(self, x, kv_cache, positions, return_attn_probs=False):
@@ -286,7 +303,7 @@ class OPTModel(nn.Module):
 
         # Final layer norm (pre-LN models have this before the LM head)
         if pre_ln:
-            self.final_layer_norm = nn.LayerNorm(d_model, eps=ln_eps)
+            self.final_layer_norm = LayerNorm(d_model, eps=ln_eps)
         else:
             self.final_layer_norm = None
 

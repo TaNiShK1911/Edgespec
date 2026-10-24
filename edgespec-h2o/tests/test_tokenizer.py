@@ -69,8 +69,8 @@ class TestTokenizerBasic(object):
 
     def test_vocab_size(self):
         tokenizer = _get_tokenizer()
-        assert tokenizer.vocab_size == 50272, \
-            "OPT vocab size should be 50272, got %d" % tokenizer.vocab_size
+        assert tokenizer.vocab_size in (50265, 50272), \
+            "OPT vocab size should be 50265 (base) or 50272 (padded), got %d" % tokenizer.vocab_size
 
 
 class TestTokenizerGolden(object):

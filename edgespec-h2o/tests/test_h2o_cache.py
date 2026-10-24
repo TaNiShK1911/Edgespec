@@ -153,6 +153,38 @@ class TestInvariants:
                 assert pin_pos in valid_positions, \
                     "Pinned position %d evicted in head %d" % (pin_pos, h)
 
+    def test_pinned_tokens_opt_offset_2(self):
+        """Regression test: positions start at offset 2, pin_first_n=4.
+        The first four prompt tokens (pos=2,3,4,5) must remain protected."""
+        c = H2OCache(
+            n_heads=4, d_head=16,
+            n_hh=4, n_local=4, n_pin=4,
+            n_scratch=4, decay=0.98,
+            device='cpu', dtype=torch.float16,
+        )
+        # Total budget = 4 + 4 + 4 = 12
+        # Fill with 16 tokens starting at offset 2 (positions 2..17)
+        n = 16
+        pos = torch.arange(2, 2 + n)
+        k = torch.randn(4, n, 16).half()
+        v = torch.randn(4, n, 16).half()
+
+        # Give the first 4 tokens (pos 2,3,4,5) ZERO score, middle tokens HIGH score
+        # Even with zero score, the first 4 prompt tokens must NEVER be evicted because they are pinned
+        scores = torch.full((4, n), 10.0)
+        scores[:, :4] = 0.0  # lowest score in the cache!
+
+        c.init_from_prefill(k, v, pos, scores)
+
+        assert c._n_valid() <= c.budget
+        for h in range(4):
+            valid_positions = [c.pos[h, i].item() for i in range(c.budget) if c.valid[h, i]]
+            for expected_pin in [2, 3, 4, 5]:
+                assert expected_pin in valid_positions, (
+                    "Prompt token with offset position %d was evicted in head %d! "
+                    "Valid positions: %s" % (expected_pin, h, valid_positions)
+                )
+
     def test_evicted_slot_is_argmin(self, small_cache):
         """Evicted slot has the minimum score among unprotected slots."""
         c = small_cache

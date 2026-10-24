@@ -36,7 +36,7 @@ from edgespec.config import (
     GPTQ_CALIBRATION_NSAMPLES, GPTQ_CALIBRATION_SEQLEN,
     OPT_CONFIGS, WEIGHTS_DIR, GOLDEN_DIR,
 )
-from edgespec.quant.qlinear import pack_int4, compute_scales_zeros, QLinear
+from edgespec.quant.qlinear import pack_int4, compute_scales_zeros, QLinear, _dequantize_int4
 from edgespec.model.loader import export_model
 
 
@@ -290,37 +290,53 @@ def quantize_model(model_name, output_path, bits=4, group_size=128,
             'fc2': layer.fc2,
         }
 
+        gptq_dict = {}
+        hooks = []
         for name, linear in linears.items():
             full_name = 'layers.%d.%s' % (layer_idx, name)
-            print("  Quantizing %s [%s]..." % (full_name, list(linear.weight.shape)))
-
-            gptq = GPTQ(linear, bits=bits, group_size=group_size)
-
-            # Collect Hessians from calibration data
-            hooks = []
+            g = GPTQ(linear, bits=bits, group_size=group_size)
+            gptq_dict[name] = g
 
             def make_hook(gptq_obj):
                 def hook_fn(module, inp, out):
                     gptq_obj.add_batch(inp[0].data)
                 return hook_fn
 
-            h = linear.register_forward_hook(make_hook(gptq))
-            hooks.append(h)
+            hooks.append(linear.register_forward_hook(make_hook(g)))
 
-            # Run calibration samples through the layer
-            with torch.no_grad():
-                for sample in calib_data[:min(32, len(calib_data))]:
-                    try:
-                        model(sample.to(device))
-                    except RuntimeError:
-                        pass  # OOM on some layers for large models
+        # Run all calibration samples through the layer without artificial caps
+        print("  Collecting Hessians over %d calibration samples..." % len(calib_data))
+        with torch.no_grad():
+            for s_idx, sample in enumerate(calib_data):
+                try:
+                    model(sample.to(device))
+                except Exception as e:
+                    for h in hooks:
+                        h.remove()
+                    raise RuntimeError("Forward pass failed on calibration sample %d: %s" % (s_idx, e))
 
-            for h in hooks:
-                h.remove()
+        for h in hooks:
+            h.remove()
 
-            # Quantize
-            qweight, scales, zeros, max_err = gptq.quantize()
+        layer_stats = {}
+        for name, linear in linears.items():
+            full_name = 'layers.%d.%s' % (layer_idx, name)
+            print("  Quantizing %s [%s]..." % (full_name, list(linear.weight.shape)))
+            g = gptq_dict[name]
+            orig_w = linear.weight.data.clone().float()
+
+            qweight, scales, zeros, max_err = g.quantize()
             layer_errors[full_name] = max_err
+
+            # Validate relative reconstruction error
+            dequant_w = _dequantize_int4(
+                qweight, scales, zeros,
+                group_size=group_size, in_features=linear.weight.shape[1]
+            ).to(device)
+            rel_err = ((dequant_w.float() - orig_w).norm() / (orig_w.norm() + 1e-8)).item()
+
+            # Update linear layer with dequantized weights so subsequent layers see quantized activations
+            linear.weight.data.copy_(dequant_w.to(linear.weight.dtype))
 
             # Store quantized weights
             quantized[full_name + '.qweight'] = qweight
@@ -335,7 +351,14 @@ def quantize_model(model_name, output_path, bits=4, group_size=128,
             checksum = hashlib.sha256(qweight.numpy().tobytes()).hexdigest()[:16]
             checksums[full_name] = checksum
 
-            print("    max_error=%.4f, checksum=%s" % (max_err, checksum))
+            layer_stats[full_name] = {
+                "shape": list(linear.weight.shape),
+                "max_error": max_err,
+                "rel_error": rel_err,
+                "checksum": checksum,
+            }
+
+            print("    max_error=%.4f, rel_error=%.4e, checksum=%s" % (max_err, rel_err, checksum))
 
     # Add FP16 embeddings, layer norms, etc. (unquantized)
     print("\nAdding FP16 components...")
@@ -376,6 +399,23 @@ def quantize_model(model_name, output_path, bits=4, group_size=128,
         }, f, indent=2)
     print("\nChecksums saved to %s" % checksums_path)
 
+    # Save machine-readable calibration and per-layer report
+    report_path = output_path.replace('.edgespec', '_report.json')
+    report_data = {
+        "model": model_name,
+        "config_name": config_name,
+        "bits": bits,
+        "group_size": group_size,
+        "nsamples": len(calib_data),
+        "seqlen": seqlen,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "layers": layer_stats,
+        "status": "PASS" if all(e < 0.2 for e in layer_errors.values()) else "WARN",
+    }
+    with open(report_path, 'w') as f:
+        json.dump(report_data, f, indent=2)
+    print("Quantization report saved to %s" % report_path)
+
     # Cleanup
     del model
     if torch.cuda.is_available():
@@ -395,7 +435,8 @@ def main():
     parser.add_argument('--output', type=str, default=None,
                         help='Output file path')
     parser.add_argument('--bits', type=int, default=GPTQ_BITS)
-    parser.add_argument('--group-size', type=int, default=GPTQ_GROUP_SIZE)
+    parser.add_argument('--group-size', type=int, default=GPTQ_GROUP_SIZE,
+                        help='Group size for quantization (e.g. 128, or -1 for no-group/per-channel)')
     parser.add_argument('--nsamples', type=int, default=GPTQ_CALIBRATION_NSAMPLES)
     parser.add_argument('--seqlen', type=int, default=GPTQ_CALIBRATION_SEQLEN)
     args = parser.parse_args()

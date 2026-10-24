@@ -73,6 +73,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Adjust default decode TPS threshold for 1.3B model (target is >= 1.0 tok/s at ctx 512)
+if [[ "$MODEL_SIZE" == "1.3b" && $DECODE_TPS_MIN -eq 8 ]]; then
+    DECODE_TPS_MIN=1
+fi
+
 # Weights availability flag
 HAS_WEIGHTS=0
 if [[ $NO_WEIGHTS -eq 0 && -n "$WEIGHTS_PATH" && -f "$WEIGHTS_PATH" ]]; then
@@ -90,6 +95,7 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 declare -A GATE_STATUS
 declare -A GATE_MSG
 REQUIRED_FAILED=0
+MANDATORY_GATES="G1.1a G1.1b G1.1c G1.2 G1.3 G1.4 G1.5 G1.6 G1.7 G1.8 G1.9 G1.10"
 
 gate_result() {
     local id="$1" status="$2" msg="$3"
@@ -98,11 +104,16 @@ gate_result() {
     local icon
     case "$status" in
         PASS) icon="+" ;;
-        FAIL) icon="X"; REQUIRED_FAILED=$((REQUIRED_FAILED + 1)) ;;
+        FAIL) icon="X" ;;
         SKIP) icon="o" ;;
         WARN) icon="!" ;;
         *)    icon="?" ;;
     esac
+    if echo "$MANDATORY_GATES" | grep -wq "$id"; then
+        if [[ "$status" != "PASS" ]]; then
+            REQUIRED_FAILED=$((REQUIRED_FAILED + 1))
+        fi
+    fi
     printf '  [%s] %s  %s -- %s\n' "$status" "$icon" "$id" "$msg"
 }
 

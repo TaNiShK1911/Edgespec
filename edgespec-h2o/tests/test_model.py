@@ -222,3 +222,249 @@ class TestOPTModelRealConfig(object):
 
         assert logits.shape == (1, 1, 50272), \
             "Expected (1, 1, 50272), got %s" % (logits.shape,)
+
+
+class TestQuantizedInferenceAndLoader(object):
+    """Tests for quantized model loading, QLinear integration, and perturbation."""
+
+    def _create_quantized_tiny_state_dict(self):
+        """Create a complete synthetic quantized state dict for TINY_CONFIG."""
+        torch.manual_seed(42)
+        d_model = TINY_CONFIG['d_model']
+        d_ffn = TINY_CONFIG['d_ffn']
+        vocab_size = TINY_CONFIG['vocab_size']
+        max_pos = TINY_CONFIG['max_positions'] + TINY_CONFIG['position_offset']
+
+        from edgespec.quant.qlinear import pack_int4, compute_scales_zeros
+
+        sd = {
+            'embed_tokens.weight': torch.randn(vocab_size, d_model, dtype=torch.float16),
+            'embed_positions.weight': torch.randn(max_pos, d_model, dtype=torch.float16),
+            'final_layer_norm.weight': torch.ones(d_model, dtype=torch.float16),
+            'final_layer_norm.bias': torch.zeros(d_model, dtype=torch.float16),
+        }
+
+        for l_idx in range(TINY_CONFIG['n_layers']):
+            sd['layers.%d.self_attn_layer_norm.weight' % l_idx] = torch.ones(d_model, dtype=torch.float16)
+            sd['layers.%d.self_attn_layer_norm.bias' % l_idx] = torch.zeros(d_model, dtype=torch.float16)
+            sd['layers.%d.final_layer_norm.weight' % l_idx] = torch.ones(d_model, dtype=torch.float16)
+            sd['layers.%d.final_layer_norm.bias' % l_idx] = torch.zeros(d_model, dtype=torch.float16)
+
+            for proj in ['q_proj', 'k_proj', 'v_proj', 'out_proj']:
+                w = torch.randn(d_model, d_model, dtype=torch.float32)
+                sc, zr = compute_scales_zeros(w, group_size=32)
+                qw = pack_int4(w.half(), sc, zr, group_size=32)
+                prefix = 'layers.%d.self_attn.%s' % (l_idx, proj)
+                sd[prefix + '.qweight'] = qw
+                sd[prefix + '.scales'] = sc
+                sd[prefix + '.zeros'] = zr
+                sd[prefix + '.bias'] = torch.zeros(d_model, dtype=torch.float16)
+
+            # fc1
+            w1 = torch.randn(d_ffn, d_model, dtype=torch.float32)
+            sc1, zr1 = compute_scales_zeros(w1, group_size=32)
+            qw1 = pack_int4(w1.half(), sc1, zr1, group_size=32)
+            sd['layers.%d.fc1.qweight' % l_idx] = qw1
+            sd['layers.%d.fc1.scales' % l_idx] = sc1
+            sd['layers.%d.fc1.zeros' % l_idx] = zr1
+            sd['layers.%d.fc1.bias' % l_idx] = torch.zeros(d_ffn, dtype=torch.float16)
+
+            # fc2
+            w2 = torch.randn(d_model, d_ffn, dtype=torch.float32)
+            sc2, zr2 = compute_scales_zeros(w2, group_size=32)
+            qw2 = pack_int4(w2.half(), sc2, zr2, group_size=32)
+            sd['layers.%d.fc2.qweight' % l_idx] = qw2
+            sd['layers.%d.fc2.scales' % l_idx] = sc2
+            sd['layers.%d.fc2.zeros' % l_idx] = zr2
+            sd['layers.%d.fc2.bias' % l_idx] = torch.zeros(d_model, dtype=torch.float16)
+
+        return sd
+
+    def test_quantized_loader_integration(self):
+        import tempfile, shutil
+        from edgespec.model.loader import export_model, load_model
+        from edgespec.quant.qlinear import QLinear
+        tmpdir = tempfile.mkdtemp()
+        try:
+            ckpt_path = os.path.join(tmpdir, "tiny_quant.edgespec")
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS["tiny"] = TINY_CONFIG
+
+            sd = self._create_quantized_tiny_state_dict()
+            export_model(sd, "tiny", ckpt_path)
+
+            model = load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+            assert isinstance(model.layers[0].self_attn.q_proj, QLinear)
+            assert isinstance(model.layers[0].fc1, QLinear)
+            assert isinstance(model.layers[0].fc2, QLinear)
+
+            inp = torch.tensor([[2, 42, 100]], dtype=torch.long)
+            model.init_kv_caches(device="cpu")
+            logits, _ = model.forward_block(inp)
+            assert logits.shape == (1, 3, TINY_CONFIG["vocab_size"])
+        finally:
+            shutil.rmtree(tmpdir)
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS.pop("tiny", None)
+
+    def test_quantized_weight_perturbation_changes_model_logits(self):
+        import tempfile, shutil
+        from edgespec.model.loader import export_model, load_model
+        tmpdir = tempfile.mkdtemp()
+        try:
+            ckpt_path = os.path.join(tmpdir, "tiny_quant.edgespec")
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS["tiny"] = TINY_CONFIG
+
+            sd = self._create_quantized_tiny_state_dict()
+            export_model(sd, "tiny", ckpt_path)
+
+            model = load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+            model.init_kv_caches(device="cpu")
+            inp = torch.tensor([[2, 10, 20]], dtype=torch.long)
+            with torch.no_grad():
+                orig_logits, _ = model.forward_block(inp)
+                orig_logits = orig_logits.clone()
+
+            # Perturb quantized weight byte in fc1
+            ql = model.layers[0].fc1
+            ql.qweight.data[0, 0] = (ql.qweight[0, 0] ^ 0xFF) & 0xFF
+
+            model.reset_caches()
+            with torch.no_grad():
+                pert_logits, _ = model.forward_block(inp)
+
+            diff = (pert_logits - orig_logits).abs().max().item()
+            assert diff > 1e-4, "Modifying quantized weight in QLinear must alter model logits"
+        finally:
+            shutil.rmtree(tmpdir)
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS.pop("tiny", None)
+
+    def test_checkpoint_reload_reproduces_inference(self):
+        import tempfile, shutil
+        from edgespec.model.loader import export_model, load_model
+        tmpdir = tempfile.mkdtemp()
+        try:
+            ckpt_path = os.path.join(tmpdir, "tiny_quant.edgespec")
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS["tiny"] = TINY_CONFIG
+
+            sd = self._create_quantized_tiny_state_dict()
+            export_model(sd, "tiny", ckpt_path)
+
+            model1 = load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+            model2 = load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+
+            model1.init_kv_caches(device="cpu")
+            model2.init_kv_caches(device="cpu")
+            inp = torch.tensor([[2, 15, 25, 35]], dtype=torch.long)
+
+            with torch.no_grad():
+                out1, _ = model1.forward_block(inp)
+                out2, _ = model2.forward_block(inp)
+
+            diff = (out1 - out2).abs().max().item()
+            assert diff == 0.0, "Reloading checkpoint must reproduce inference bit-for-bit"
+        finally:
+            shutil.rmtree(tmpdir)
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS.pop("tiny", None)
+
+    def test_missing_tensor_raises_error(self):
+        import tempfile, shutil
+        from edgespec.model.loader import export_model, load_model
+        tmpdir = tempfile.mkdtemp()
+        try:
+            ckpt_path = os.path.join(tmpdir, "corrupt.edgespec")
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS["tiny"] = TINY_CONFIG
+
+            sd = self._create_quantized_tiny_state_dict()
+            del sd['layers.0.self_attn.q_proj.scales']
+            export_model(sd, "tiny", ckpt_path)
+
+            with pytest.raises(ValueError):
+                load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+        finally:
+            shutil.rmtree(tmpdir)
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS.pop("tiny", None)
+
+    def test_unknown_tensor_raises_error(self):
+        import tempfile, shutil
+        from edgespec.model.loader import export_model, load_model
+        tmpdir = tempfile.mkdtemp()
+        try:
+            ckpt_path = os.path.join(tmpdir, "unknown.edgespec")
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS["tiny"] = TINY_CONFIG
+
+            sd = self._create_quantized_tiny_state_dict()
+            sd['random_unknown_tensor.weight'] = torch.randn(10, 10, dtype=torch.float16)
+            export_model(sd, "tiny", ckpt_path)
+
+            with pytest.raises(KeyError):
+                load_model(ckpt_path, device="cpu", dtype=torch.float16, quantized=True)
+        finally:
+            shutil.rmtree(tmpdir)
+            from edgespec.config import OPT_CONFIGS
+            OPT_CONFIGS.pop("tiny", None)
+
+
+class TestGoldenLogitsParity(object):
+    """G1.3: FP32 reference logits parity against Hugging Face reference."""
+
+    def test_fp32_golden_logits_top1_and_diff(self):
+        import json
+        golden_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                   'data', 'golden', 'opt-125m', 'golden_logits.json')
+        if not os.path.exists(golden_file):
+            golden_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                       'data', 'golden', 'golden_logits.json')
+        if not os.path.exists(golden_file):
+            pytest.skip("Golden logits file not found — run export_golden.py first")
+
+        from edgespec.model.loader import load_model_from_hf
+        model = load_model_from_hf("facebook/opt-125m", device="cpu", dtype=torch.float32)
+
+        with open(golden_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        total_positions = 0
+        matches = 0
+        diffs = []
+
+        for p_data in data['prompts']:
+            inp = torch.tensor([p_data['input_ids']], dtype=torch.long)
+            model.reset_caches()
+            model.init_kv_caches(max_seq_len=max(2048, inp.shape[1] + 16), device="cpu")
+            with torch.no_grad():
+                logits, _ = model.forward_block(inp)
+
+            pred_top1 = logits[0].argmax(dim=-1).tolist()
+            expected_top1 = p_data['top1_ids']
+
+            for got_id, exp_id in zip(pred_top1, expected_top1):
+                if got_id == exp_id:
+                    matches += 1
+                total_positions += 1
+
+            last_logits = logits[0, -1, :]
+            expected_top20_ids = p_data['last_pos_logits_top20_ids']
+            expected_top20_vals = p_data['last_pos_logits_top20_vals']
+            actual_vals = last_logits[expected_top20_ids].tolist()
+
+            for av, ev in zip(actual_vals, expected_top20_vals):
+                diffs.append(abs(av - ev))
+
+        agreement_pct = (matches / total_positions) * 100.0 if total_positions > 0 else 0.0
+        mean_diff = sum(diffs) / len(diffs) if diffs else 0.0
+
+        print("\nGolden Logits: %d/%d top-1 (%.2f%%), mean diff = %.6f" % (
+            matches, total_positions, agreement_pct, mean_diff))
+
+        assert total_positions >= 500, "Must evaluate over >= 500 positions (got %d)" % total_positions
+        assert agreement_pct >= 98.0, "Top-1 agreement %.2f%% < 98%%" % agreement_pct
+        assert mean_diff <= 0.05, "Mean abs logit diff %.4f > 0.05" % mean_diff
+

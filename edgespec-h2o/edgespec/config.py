@@ -31,7 +31,7 @@ OPT_CONFIGS = {
         "eos_token_id": 2,
         "pad_token_id": 1,
         "tie_word_embeddings": True,
-        "pre_layernorm": True,  # OPT-125M uses post-LN, 350M+ uses pre-LN
+        "pre_layernorm": True,  # OPT-125M uses pre-LN (do_layer_norm_before=True)
     },
     "opt-350m": {
         "n_layers": 24,
@@ -47,7 +47,7 @@ OPT_CONFIGS = {
         "eos_token_id": 2,
         "pad_token_id": 1,
         "tie_word_embeddings": True,
-        "pre_layernorm": True,
+        "pre_layernorm": False,  # OPT-350M uses post-LN (do_layer_norm_before=False)
     },
     "opt-1.3b": {
         "n_layers": 24,

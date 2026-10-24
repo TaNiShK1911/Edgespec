@@ -14,12 +14,17 @@ Each uint8 byte stores two 4-bit weights: low nibble = w[2i], high nibble = w[2i
 Group-quantised: each group of ``group_size`` input features shares one scale/zero.
 """
 
-import torch
 import math
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
-class QLinear(object):
+class QLinear(nn.Module):
     """Quantized linear layer (INT4 GPTQ, reference dequant path).
+
+    Inherits from nn.Module so it can replace nn.Linear directly in model
+    architectures during quantized inference.
 
     Parameters
     ----------
@@ -28,19 +33,28 @@ class QLinear(object):
     zeros   : torch.Tensor  [out_features, n_groups] float16
     bias    : torch.Tensor or None  [out_features] float16
     group_size : int
+        Group size for per-group quantization (e.g. 128).
+        If <= 0 or None, represents no-group quantization (group_size = in_features, n_groups = 1).
     bits : int  (always 4 for now)
     """
 
     def __init__(self, qweight, scales, zeros, bias=None, group_size=128, bits=4):
-        self.qweight = qweight  # uint8, device may be CPU or CUDA
-        self.scales = scales
-        self.zeros = zeros
-        self.bias = bias
-        self.group_size = group_size
+        super(QLinear, self).__init__()
         self.bits = bits
-
         self.out_features = qweight.shape[0]
         self.in_features = qweight.shape[1] * (8 // bits)
+        if group_size is None or group_size <= 0:
+            self.group_size = self.in_features
+        else:
+            self.group_size = group_size
+
+        self.register_buffer('qweight', qweight.to(torch.uint8))
+        self.register_buffer('scales', scales.to(torch.float16))
+        self.register_buffer('zeros', zeros.to(torch.float16))
+        if bias is not None:
+            self.register_buffer('bias', bias.to(torch.float16))
+        else:
+            self.register_buffer('bias', None)
 
     def dequantize(self):
         """Unpack and dequantize to a full FP16 weight matrix.
@@ -55,39 +69,21 @@ class QLinear(object):
         )
 
     def forward(self, x):
-        """y = x @ W^T + bias  where W is dequantized on-the-fly.
+        """y = x @ W^T + bias where W is dequantized on-the-fly.
 
         Parameters
         ----------
-        x : torch.Tensor [..., in_features]  float16
+        x : torch.Tensor [..., in_features]  float16 or float32
 
         Returns
         -------
         torch.Tensor [..., out_features]  float16
-
-        Notes
-        -----
-        Dequantizes the full weight matrix each time.  This is the reference
-        path; a fused kernel (P1-10) would avoid materialising W.
         """
         weight_fp16 = self.dequantize()
-        out = torch.matmul(x, weight_fp16.t())
-        if self.bias is not None:
-            out = out + self.bias
+        if x.dtype != weight_fp16.dtype:
+            x = x.to(weight_fp16.dtype)
+        out = F.linear(x, weight_fp16, self.bias)
         return out
-
-    def to(self, device):
-        """Move all tensors to *device*."""
-        self.qweight = self.qweight.to(device)
-        self.scales = self.scales.to(device)
-        self.zeros = self.zeros.to(device)
-        if self.bias is not None:
-            self.bias = self.bias.to(device)
-        return self
-
-    @property
-    def device(self):
-        return self.qweight.device
 
 
 def _dequantize_int4(qweight, scales, zeros, group_size, in_features):
@@ -98,7 +94,7 @@ def _dequantize_int4(qweight, scales, zeros, group_size, in_features):
     qweight : torch.Tensor [out_features, in_features // 2] uint8
     scales  : torch.Tensor [out_features, n_groups] float16
     zeros   : torch.Tensor [out_features, n_groups] float16
-    group_size : int
+    group_size : int (if <= 0 or None, treated as no-group: group_size = in_features)
     in_features : int
 
     Returns
@@ -106,6 +102,8 @@ def _dequantize_int4(qweight, scales, zeros, group_size, in_features):
     torch.Tensor [out_features, in_features] float16
     """
     out_features = qweight.shape[0]
+    if group_size is None or group_size <= 0:
+        group_size = in_features
 
     # Unpack: each byte → two 4-bit values
     low = (qweight & 0x0F).to(torch.int8)    # even indices
@@ -142,13 +140,15 @@ def pack_int4(weight_fp, scales, zeros, group_size=128):
     weight_fp : torch.Tensor [out_features, in_features]
     scales    : torch.Tensor [out_features, n_groups]
     zeros     : torch.Tensor [out_features, n_groups]
-    group_size : int
+    group_size : int (if <= 0 or None, treated as no-group: group_size = in_features)
 
     Returns
     -------
     qweight : torch.Tensor [out_features, in_features // 2] uint8
     """
     out_features, in_features = weight_fp.shape
+    if group_size is None or group_size <= 0:
+        group_size = in_features
     assert in_features % group_size == 0, "in_features must be divisible by group_size"
     n_groups = in_features // group_size
 
@@ -176,7 +176,7 @@ def compute_scales_zeros(weight, group_size=128, bits=4):
     Parameters
     ----------
     weight : torch.Tensor [out_features, in_features]
-    group_size : int
+    group_size : int (if <= 0 or None, treated as no-group: group_size = in_features)
     bits : int
 
     Returns
@@ -185,6 +185,8 @@ def compute_scales_zeros(weight, group_size=128, bits=4):
     zeros  : torch.Tensor [out_features, n_groups]
     """
     out_features, in_features = weight.shape
+    if group_size is None or group_size <= 0:
+        group_size = in_features
     assert in_features % group_size == 0
     n_groups = in_features // group_size
     maxq = 2 ** bits - 1
@@ -213,6 +215,8 @@ def verify_pack_unpack(weight_fp, group_size=128, bits=4):
         Max abs error / scale.  Should be <= 0.5 + eps for a correct round-trip.
     passed : bool
     """
+    if group_size is None or group_size <= 0:
+        group_size = weight_fp.shape[1]
     scales, zeros = compute_scales_zeros(weight_fp, group_size, bits)
     packed = pack_int4(weight_fp.to(torch.float16), scales, zeros, group_size)
     recovered = _dequantize_int4(packed, scales, zeros, group_size, weight_fp.shape[1])

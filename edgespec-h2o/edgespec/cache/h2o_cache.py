@@ -331,11 +331,18 @@ class H2OCache(object):
             # Build protection mask
             protected = torch.zeros(n_valid, device=self.device, dtype=torch.bool)
 
-            # Protect pinned (first n_pin absolute positions)
+            # Protect pinned (first n_pin prompt positions starting from min position)
+            valid_pos = positions_h[valid_mask_h]
+            if len(valid_pos) > 0:
+                pos_min = valid_pos.min().item()
+                pin_threshold = pos_min + self.n_pin
+            else:
+                pin_threshold = self.n_pin
+
             for i in range(n_valid):
                 if valid_mask_h[i]:
                     p = positions_h[i].item()
-                    if p < self.n_pin:
+                    if p >= 0 and p < pin_threshold:
                         protected[i] = True
                     elif p >= local_start:
                         protected[i] = True
@@ -459,8 +466,10 @@ class H2OCache(object):
         for h in range(self.n_heads):
             scores_h = score_accum[h].clone()
 
-            # Identify pin and local positions
-            pin_mask = positions < self.n_pin
+            # Identify pin and local positions (accounting for position offsets such as OPT offset 2)
+            pos_min = int(positions.min().item()) if len(positions) > 0 else 0
+            pin_threshold = pos_min + self.n_pin
+            pin_mask = (positions < pin_threshold) & (positions >= pos_min)
             local_mask = positions >= local_start
             protected_mask = pin_mask | local_mask
 
@@ -525,13 +534,21 @@ class H2OCache(object):
             local_start = max_pos - self.n_local + 1
 
             # Protection mask
+            valid_pos = positions_h[self.valid[h, :n_valid]]
+            if len(valid_pos) > 0:
+                pos_min = valid_pos.min().item()
+                pin_threshold = pos_min + self.n_pin
+            else:
+                pin_threshold = self.n_pin
+
             protected = torch.zeros(n_valid, device=self.device, dtype=torch.bool)
             for i in range(n_valid):
-                p = positions_h[i].item()
-                if p < self.n_pin:
-                    protected[i] = True
-                elif p >= local_start:
-                    protected[i] = True
+                if self.valid[h, i]:
+                    p = positions_h[i].item()
+                    if p >= 0 and p < pin_threshold:
+                        protected[i] = True
+                    elif p >= local_start:
+                        protected[i] = True
 
             evictable = self.valid[h, :n_valid] & ~protected
             n_evictable = evictable.sum().item()

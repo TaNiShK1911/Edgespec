@@ -23,7 +23,10 @@ Thumbs.db
 edgespec-h2o/data/weights/*.pt
 edgespec-h2o/data/weights/*.bin
 edgespec-h2o/data/weights/*.safetensors
+edgespec-h2o/data/weights/*.edgespec
+*.edgespec
 edgespec-h2o/data/golden/*.pt
+edgespec-h2o/data/golden/**/*.pt
 edgespec-h2o/data/golden/*.bin
 
 # Logs and transient run outputs

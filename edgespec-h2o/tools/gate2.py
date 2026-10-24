@@ -195,12 +195,16 @@ class Gate2Runner:
             local_ppl = baselines['Local']['ppl']
             full_ppl = baselines['Full']['ppl']
 
-            msg = "H2O loss=%.4f (delta_PPL=%+.2f vs Full), beats Local or matches within bound" % (
-                baselines['H2O (lambda=0.98)']['loss'], baselines['H2O (lambda=0.98)']['delta_ppl']
+            delta_ppl = baselines['H2O (lambda=0.98)']['delta_ppl']
+            msg = "H2O loss=%.4f (delta_PPL=%+.2f vs Full), meets baseline" % (
+                baselines['H2O (lambda=0.98)']['loss'], delta_ppl
             )
-            self.record('G2.5', 'PASS', msg)
+            if delta_ppl <= 1.0:
+                self.record('G2.5', 'PASS', msg)
+            else:
+                self.record('G2.5', 'FAIL', 'delta_PPL=%.2f exceeds +1.0 threshold' % delta_ppl)
         except Exception as e:
-            self.record('G2.5', 'WARN', 'Quality evaluation note: %s' % str(e))
+            self.record('G2.5', 'FAIL', 'Quality evaluation failed: %s' % str(e))
 
     def run_g2_6_decay_ablation(self):
         """G2.6: Decay ablation."""
@@ -276,7 +280,7 @@ class Gate2Runner:
             if overhead_pct <= max_overhead:
                 self.record('G2.7', 'PASS', 'Scoring+eviction overhead: %.1f%% <= %.1f%%' % (overhead_pct, max_overhead))
             else:
-                self.record('G2.7', 'WARN', 'Scoring+eviction overhead: %.1f%% > %.1f%% (CPU execution)' % (overhead_pct, max_overhead))
+                self.record('G2.7', 'FAIL', 'Scoring+eviction overhead: %.1f%% > %.1f%%' % (overhead_pct, max_overhead))
         except Exception as e:
             self.record('G2.7', 'FAIL', 'Overhead benchmark failed: %s' % str(e))
 
@@ -284,7 +288,7 @@ class Gate2Runner:
         """G2.8: Continuous generation soak test."""
         print("\n--- G2.8: Soak test (RSS drift) ---")
         if self.skip_soak:
-            self.record('G2.8', 'SKIP', 'Skipped via --skip-soak')
+            self.record('G2.8', 'SKIP', 'Skipped via --skip-soak (MANDATORY for full Gate 2 certification)')
             return
 
         try:
@@ -306,6 +310,11 @@ class Gate2Runner:
 
     def write_report(self):
         os.makedirs(RESULTS_DIR, exist_ok=True)
+        mandatory_gates = ['G2.1', 'G2.2', 'G2.3', 'G2.4', 'G2.5', 'G2.6', 'G2.7', 'G2.8', 'G2.9']
+        all_required_pass = all(
+            self.results.get(gid, {}).get('status') == 'PASS'
+            for gid in mandatory_gates
+        )
         report = {
             'gate': 2,
             'timestamp': self.timestamp,
@@ -317,7 +326,7 @@ class Gate2Runner:
             'n_fail': self.n_fail,
             'n_warn': self.n_warn,
             'n_skip': self.n_skip,
-            'all_required_pass': self.n_fail == 0,
+            'all_required_pass': all_required_pass,
             'gates': self.results,
         }
         with open(self.report_file, 'w') as f:
@@ -332,7 +341,7 @@ class Gate2Runner:
         except Exception as e:
             print("Could not update latest symlink/copy: %s" % str(e))
 
-        return self.n_fail == 0
+        return all_required_pass
 
     def run_all(self):
         print("=" * 70)
@@ -359,7 +368,9 @@ class Gate2Runner:
             print("  >>> ALL REQUIRED GATE 2 CHECKS PASSED <<<")
             print("  >>> Ready to proceed to Phase 3 <<<")
         else:
-            print("  >>> GATE 2 HAS %d FAILURES <<<" % self.n_fail)
+            mandatory_gates = ['G2.1', 'G2.2', 'G2.3', 'G2.4', 'G2.5', 'G2.6', 'G2.7', 'G2.8', 'G2.9']
+            unpassed = [gid for gid in mandatory_gates if self.results.get(gid, {}).get('status') != 'PASS']
+            print("  >>> GATE 2 FAILED -- Missing or non-passing mandatory checks: %s <<<" % unpassed)
         print("=" * 70)
         return all_ok
 

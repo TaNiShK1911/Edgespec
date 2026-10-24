@@ -85,6 +85,7 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 declare -A GATE_STATUS
 declare -A GATE_MSG
 REQUIRED_FAILED=0
+MANDATORY_GATES="G2.1 G2.2 G2.3 G2.4 G2.5 G2.6 G2.7 G2.8 G2.9"
 
 gate_result() {
     local id="$1" status="$2" msg="$3"
@@ -93,11 +94,16 @@ gate_result() {
     local icon
     case "$status" in
         PASS) icon="+" ;;
-        FAIL) icon="X"; REQUIRED_FAILED=$((REQUIRED_FAILED + 1)) ;;
+        FAIL) icon="X" ;;
         SKIP) icon="o" ;;
         WARN) icon="!" ;;
         *)    icon="?" ;;
     esac
+    if echo "$MANDATORY_GATES" | grep -wq "$id"; then
+        if [[ "$status" != "PASS" ]]; then
+            REQUIRED_FAILED=$((REQUIRED_FAILED + 1))
+        fi
+    fi
     printf '  [%s] %s  %s -- %s\n' "$status" "$icon" "$id" "$msg"
 }
 
@@ -266,7 +272,7 @@ SWEEP_OUT=$("$PYTHON" tools/sweep_h2o.py --quick --device "$DEVICE" --model-size
 if echo "$SWEEP_OUT" | grep -q "P2-6 Recalibration Summary"; then
     gate_result "G2.5" "PASS" "Quality sweep completed; H2O meets baseline at 20% budget"
 else
-    gate_result "G2.5" "WARN" "Quality sweep finished with warnings"
+    gate_result "G2.5" "FAIL" "Quality sweep failed or did not meet baseline requirements"
 fi
 
 # ===========================================================================
@@ -355,7 +361,7 @@ OH_PCT=$("$PYTHON" -c "import json,sys; d=json.loads('$OVERHEAD_OUT'); print('%.
 if [[ "$OH_PASS" == "yes" ]]; then
     gate_result "G2.7" "PASS" "Scoring+eviction overhead: ${OH_PCT}% <= 15%"
 else
-    gate_result "G2.7" "WARN" "Scoring+eviction overhead: ${OH_PCT}% > 15% (CPU execution)"
+    gate_result "G2.7" "FAIL" "Scoring+eviction overhead: ${OH_PCT}% > 15%"
 fi
 
 # ===========================================================================
@@ -363,13 +369,13 @@ fi
 # ===========================================================================
 section "G2.8: Soak test (RSS drift)"
 if [[ $SKIP_SOAK -eq 1 ]]; then
-    gate_result "G2.8" "SKIP" "Skipped via --skip-soak"
+    gate_result "G2.8" "SKIP" "Skipped via --skip-soak (MANDATORY for full Gate 2 certification)"
 else
     SOAK_OUT=$("$PYTHON" tools/soak_test.py --duration 10 --device "$DEVICE" --model-size "$MODEL_SIZE" 2>&1)
     if echo "$SOAK_OUT" | grep -q "Status          : PASS"; then
         gate_result "G2.8" "PASS" "Continuous decode soak: RSS drift <= 20 MiB"
     else
-        gate_result "G2.8" "WARN" "Soak test non-zero exit or drift warning"
+        gate_result "G2.8" "FAIL" "Soak test failed or RSS drift exceeded 20 MiB"
     fi
 fi
 

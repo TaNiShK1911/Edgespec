@@ -210,6 +210,28 @@ class OPTDecoderLayer(nn.Module):
         self.final_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
         self.mlp = OPTMLP(d_model, d_ffn, dtype=dtype)
 
+    def __setattr__(self, name: str, value):
+        if name in ("fc1", "fc2") and hasattr(self, "mlp"):
+            setattr(self.mlp, name, value)
+            return
+        super(OPTDecoderLayer, self).__setattr__(name, value)
+
+    @property
+    def fc1(self):
+        return self.mlp.fc1
+
+    @fc1.setter
+    def fc1(self, mod):
+        self.mlp.fc1 = mod
+
+    @property
+    def fc2(self):
+        return self.mlp.fc2
+
+    @fc2.setter
+    def fc2(self, mod):
+        self.mlp.fc2 = mod
+
     def forward(self, x, kv_cache, positions, return_attn_probs=False):
         """
         Parameters

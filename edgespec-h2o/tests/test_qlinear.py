@@ -133,3 +133,49 @@ class TestPackUnpack(object):
         assert ql.scales.device.type == 'cpu'
         assert ql.zeros.device.type == 'cpu'
         assert ql.bias.device.type == 'cpu'
+
+    def test_nogroup_roundtrip(self):
+        """Test no-group variant (group_size=-1) produces 1 scale/zero per row."""
+        torch.manual_seed(42)
+        weight = torch.randn(64, 256, dtype=torch.float32)
+        scales, zeros = compute_scales_zeros(weight, group_size=-1, bits=4)
+        assert scales.shape == (64, 1), "No-group scales must have shape [out, 1]"
+        assert zeros.shape == (64, 1), "No-group zeros must have shape [out, 1]"
+
+        norm_err, passed = verify_pack_unpack(weight, group_size=-1, bits=4)
+        assert passed, "No-group normalised error %.6f > 0.6" % norm_err
+
+    def test_nogroup_qlinear_forward(self):
+        """Test QLinear forward pass with no-group representation."""
+        torch.manual_seed(42)
+        in_f, out_f = 256, 128
+        weight = torch.randn(out_f, in_f, dtype=torch.float32)
+        scales, zeros = compute_scales_zeros(weight, group_size=-1)
+        packed = pack_int4(weight.to(torch.float16), scales, zeros, group_size=-1)
+
+        ql = QLinear(packed, scales, zeros, group_size=-1)
+        x = torch.randn(1, 4, in_f, dtype=torch.float16)
+        out = ql(x)
+        assert out.shape == (1, 4, out_f)
+        assert ql.group_size == in_f
+
+    def test_weight_perturbation_changes_output(self):
+        """Modifying a quantized weight in qweight must change the forward output."""
+        torch.manual_seed(42)
+        in_f, out_f = 128, 64
+        weight = torch.randn(out_f, in_f, dtype=torch.float32)
+        scales, zeros = compute_scales_zeros(weight, group_size=128)
+        packed = pack_int4(weight.to(torch.float16), scales, zeros, group_size=128)
+
+        ql = QLinear(packed.clone(), scales.clone(), zeros.clone(), group_size=128)
+        x = torch.randn(1, 4, in_f, dtype=torch.float16)
+
+        out_orig = ql(x).clone()
+
+        # Perturb one byte in qweight
+        ql.qweight[0, 0] = (ql.qweight[0, 0] ^ 0xFF) & 0xFF
+        out_pert = ql(x)
+
+        max_diff = (out_pert - out_orig).abs().max().item()
+        assert max_diff > 1e-4, "Modifying qweight must change the forward output (diff=%f)" % max_diff
+

@@ -42,40 +42,61 @@ from edgespec.quant.qlinear import QLinear
 #  Export (offline, on laptop)
 # --------------------------------------------------------------------------- #
 
+import hashlib
+
+def _canonicalize_name(name):
+    """Normalize tensor names to canonical format."""
+    name = name.replace('.mlp.fc1.', '.fc1.').replace('.mlp.fc2.', '.fc2.')
+    if name.startswith('model.decoder.'):
+        name = name.replace('model.decoder.', '')
+    return name
+
+
 def export_model(state_dict, config_name, output_path, quantized_layers=None):
     """Export a model state dict to the EdgeSpec binary format.
+
+    Enforces canonical naming, calculates SHA-256 checksums, and ensures
+    sequential non-overlapping offsets.
 
     Parameters
     ----------
     state_dict : dict
-        Model state dict (may contain QLinear dicts or regular tensors).
+        Model state dict (may contain QLinear tensors or regular tensors).
     config_name : str
         Key in OPT_CONFIGS, e.g. "opt-1.3b".
     output_path : str
         Output file path.
     quantized_layers : dict or None
-        {layer_param_name: QLinear} for quantized linear layers.
-        If None, treats everything as FP16.
+        Optional dictionary of quantized layer metadata.
     """
+    if config_name not in OPT_CONFIGS:
+        raise ValueError("Unknown config_name: %s" % config_name)
     config = OPT_CONFIGS[config_name]
     tensors_meta = []
     tensor_data = []
     current_offset = 0
 
-    # Collect all tensors
-    for name, tensor in sorted(state_dict.items()):
+    # Collect and canonicalize all tensors
+    canonical_items = []
+    for name, tensor in state_dict.items():
         if isinstance(tensor, torch.Tensor):
-            data = tensor.cpu().contiguous().numpy().tobytes()
-            meta = {
-                "name": name,
-                "dtype": str(tensor.dtype).replace("torch.", ""),
-                "shape": list(tensor.shape),
-                "offset": current_offset,
-                "nbytes": len(data),
-            }
-            tensors_meta.append(meta)
-            tensor_data.append(data)
-            current_offset += len(data)
+            cname = _canonicalize_name(name)
+            canonical_items.append((cname, tensor))
+
+    for name, tensor in sorted(canonical_items, key=lambda x: x[0]):
+        data = tensor.cpu().contiguous().numpy().tobytes()
+        sha = hashlib.sha256(data).hexdigest()
+        meta = {
+            "name": name,
+            "dtype": str(tensor.dtype).replace("torch.", ""),
+            "shape": list(tensor.shape),
+            "offset": current_offset,
+            "nbytes": len(data),
+            "sha256": sha,
+        }
+        tensors_meta.append(meta)
+        tensor_data.append(data)
+        current_offset += len(data)
 
     header = {
         "format": "edgespec-v1",
@@ -119,33 +140,32 @@ _DTYPE_MAP = {
 
 def _read_header(f):
     """Read the JSON header from an EdgeSpec binary file."""
-    header_len = struct.unpack('<Q', f.read(8))[0]
+    prefix = f.read(8)
+    if len(prefix) < 8:
+        raise ValueError("Invalid EdgeSpec file: header prefix too short")
+    header_len = struct.unpack('<Q', prefix)[0]
     header_bytes = f.read(header_len)
+    if len(header_bytes) < header_len:
+        raise ValueError("Invalid EdgeSpec file: truncated header bytes")
     header = json.loads(header_bytes.decode('utf-8'))
     data_start = 8 + header_len
     return header, data_start
 
 
 def load_tensor_by_name(filepath, tensor_name, device='cpu'):
-    """Load a single tensor from the export file (low peak RAM).
-
-    Parameters
-    ----------
-    filepath : str
-    tensor_name : str
-    device : str
-
-    Returns
-    -------
-    torch.Tensor
-    """
+    """Load a single tensor from the export file (low peak RAM)."""
     with open(filepath, 'rb') as f:
         header, data_start = _read_header(f)
+        c_target = _canonicalize_name(tensor_name)
 
         for meta in header['tensors']:
-            if meta['name'] == tensor_name:
+            if _canonicalize_name(meta['name']) == c_target or meta['name'] == tensor_name:
                 f.seek(data_start + meta['offset'])
                 raw = f.read(meta['nbytes'])
+                if 'sha256' in meta:
+                    actual_sha = hashlib.sha256(raw).hexdigest()
+                    if actual_sha != meta['sha256']:
+                        raise ValueError("Checksum mismatch for %s" % tensor_name)
                 dtype = _DTYPE_MAP[meta['dtype']]
                 tensor = torch.frombuffer(bytearray(raw), dtype=dtype)
                 tensor = tensor.reshape(meta['shape'])
@@ -156,6 +176,9 @@ def load_tensor_by_name(filepath, tensor_name, device='cpu'):
 
 def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
     """Load an OPT model tensor-by-tensor from the EdgeSpec export format.
+
+    Builds QLinear layers for quantized checkpoints and fails closed on
+    any missing, corrupted, or unknown tensors.
 
     Parameters
     ----------
@@ -172,75 +195,167 @@ def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
     -------
     OPTModel
     """
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError("Checkpoint file not found: %s" % filepath)
+
+    file_size = os.path.getsize(filepath)
+
     with open(filepath, 'rb') as f:
         header, data_start = _read_header(f)
+
+    if header.get('format') != 'edgespec-v1':
+        raise ValueError("Invalid checkpoint format: expected 'edgespec-v1', got %r" % header.get('format'))
 
     config_name = header['model_name']
-    config = header.get('config', OPT_CONFIGS.get(config_name, {}))
+    if config_name not in OPT_CONFIGS:
+        raise ValueError("Unknown model config: %s" % config_name)
+    config = header.get('config', OPT_CONFIGS[config_name])
 
-    # Build the model skeleton (empty weights)
+    tensors_meta = header.get('tensors', [])
+    if not tensors_meta:
+        raise ValueError("Empty tensor manifest in %s" % filepath)
+
+    # Validate offsets and bounds
+    for meta in tensors_meta:
+        off = meta['offset']
+        nb = meta['nbytes']
+        if data_start + off + nb > file_size:
+            raise ValueError("Tensor %s bounds [%d, %d] exceed file size %d" % (
+                meta['name'], data_start + off, data_start + off + nb, file_size))
+
+    # Build alias map
+    alias_map = {}
+    for meta in tensors_meta:
+        alias_map[meta['name']] = meta
+        alias_map[_canonicalize_name(meta['name'])] = meta
+
+    def read_tensor_from_meta(meta):
+        with open(filepath, 'rb') as f_in:
+            f_in.seek(data_start + meta['offset'])
+            raw = f_in.read(meta['nbytes'])
+        if 'sha256' in meta:
+            actual_sha = hashlib.sha256(raw).hexdigest()
+            if actual_sha != meta['sha256']:
+                raise ValueError("Checksum mismatch for %s: expected %s, got %s" % (
+                    meta['name'], meta['sha256'], actual_sha))
+        tdtype = _DTYPE_MAP[meta['dtype']]
+        t = torch.frombuffer(bytearray(raw), dtype=tdtype).reshape(meta['shape'])
+        return t
+
+    # Build the model skeleton
     model = OPTModel(config, dtype=dtype)
+    n_layers = config['n_layers']
 
-    # Load tensors one by one
-    with open(filepath, 'rb') as f:
-        header, data_start = _read_header(f)
+    # 1. Embeddings
+    for emb_name in ['embed_tokens.weight', 'embed_positions.weight']:
+        if emb_name not in alias_map:
+            raise KeyError("Missing mandatory embedding tensor: %s" % emb_name)
+        t = read_tensor_from_meta(alias_map[emb_name]).to(device).to(dtype)
+        if emb_name == 'embed_tokens.weight':
+            model.embed_tokens.weight.data.copy_(t)
+        else:
+            model.embed_positions.weight.data.copy_(t)
 
-        for meta in header['tensors']:
-            name = meta['name']
-            f.seek(data_start + meta['offset'])
-            raw = f.read(meta['nbytes'])
-            tensor_dtype = _DTYPE_MAP[meta['dtype']]
-            tensor = torch.frombuffer(bytearray(raw), dtype=tensor_dtype)
-            tensor = tensor.reshape(meta['shape']).to(device)
+    # Final layer norm (decoder-level)
+    if model.final_layer_norm is not None:
+        if 'final_layer_norm.weight' in alias_map:
+            model.final_layer_norm.weight.data.copy_(
+                read_tensor_from_meta(alias_map['final_layer_norm.weight']).to(device).to(dtype)
+            )
+        if 'final_layer_norm.bias' in alias_map:
+            model.final_layer_norm.bias.data.copy_(
+                read_tensor_from_meta(alias_map['final_layer_norm.bias']).to(device).to(dtype)
+            )
 
-            # Map tensor name to the model
-            _assign_tensor(model, name, tensor, quantized=quantized)
+    # 2. Layers
+    linear_subpaths = ['self_attn.q_proj', 'self_attn.k_proj', 'self_attn.v_proj', 'self_attn.out_proj', 'fc1', 'fc2']
+
+    for l_idx in range(n_layers):
+        layer = model.layers[l_idx]
+
+        # Layer norms
+        for ln_name in ['self_attn_layer_norm', 'final_layer_norm']:
+            w_key = 'layers.%d.%s.weight' % (l_idx, ln_name)
+            b_key = 'layers.%d.%s.bias' % (l_idx, ln_name)
+            ln_mod = getattr(layer, ln_name)
+            if w_key in alias_map:
+                ln_mod.weight.data.copy_(read_tensor_from_meta(alias_map[w_key]).to(device).to(dtype))
+            if b_key in alias_map:
+                ln_mod.bias.data.copy_(read_tensor_from_meta(alias_map[b_key]).to(device).to(dtype))
+
+        # Linear layers
+        for lin in linear_subpaths:
+            prefix = 'layers.%d.%s' % (l_idx, lin)
+            if quantized:
+                qw_key = prefix + '.qweight'
+                sc_key = prefix + '.scales'
+                zr_key = prefix + '.zeros'
+                bi_key = prefix + '.bias'
+
+                if qw_key not in alias_map or sc_key not in alias_map or zr_key not in alias_map:
+                    raise ValueError("Incomplete quantized linear layer for %s: missing qweight/scales/zeros" % prefix)
+
+                qweight = read_tensor_from_meta(alias_map[qw_key]).to(device)
+                scales = read_tensor_from_meta(alias_map[sc_key]).to(device)
+                zeros = read_tensor_from_meta(alias_map[zr_key]).to(device)
+                bias = read_tensor_from_meta(alias_map[bi_key]).to(device) if bi_key in alias_map else None
+
+                in_f = qweight.shape[1] * 2
+                n_groups = scales.shape[1]
+                group_size = in_f // n_groups if n_groups > 1 else -1
+
+                ql = QLinear(qweight, scales, zeros, bias=bias, group_size=group_size, bits=4).to(device)
+
+                if 'self_attn' in lin:
+                    proj = lin.split('.')[-1]
+                    setattr(layer.self_attn, proj, ql)
+                elif lin == 'fc1':
+                    layer.mlp.fc1 = ql
+                elif lin == 'fc2':
+                    layer.mlp.fc2 = ql
+            else:
+                w_key = prefix + '.weight'
+                bi_key = prefix + '.bias'
+                if w_key not in alias_map:
+                    raise ValueError("Missing weight tensor for %s" % prefix)
+                w = read_tensor_from_meta(alias_map[w_key]).to(device).to(dtype)
+                bias = read_tensor_from_meta(alias_map[bi_key]).to(device).to(dtype) if bi_key in alias_map else None
+
+                if 'self_attn' in lin:
+                    proj = lin.split('.')[-1]
+                    mod = getattr(layer.self_attn, proj)
+                    mod.weight.data.copy_(w)
+                    if bias is not None and mod.bias is not None:
+                        mod.bias.data.copy_(bias)
+                elif lin == 'fc1':
+                    layer.fc1.weight.data.copy_(w)
+                    if bias is not None and layer.fc1.bias is not None:
+                        layer.fc1.bias.data.copy_(bias)
+                elif lin == 'fc2':
+                    layer.fc2.weight.data.copy_(w)
+                    if bias is not None and layer.fc2.bias is not None:
+                        layer.fc2.bias.data.copy_(bias)
+
+    # 3. Strict validation: check for unknown tensors in checkpoint
+    known_roots = {'embed_tokens', 'embed_positions', 'final_layer_norm', 'lm_head', 'lm_head_weight'}
+    for meta in tensors_meta:
+        cname = _canonicalize_name(meta['name'])
+        root = cname.split('.')[0]
+        if root not in known_roots and root != 'layers':
+            raise KeyError("Unknown tensor '%s' in checkpoint" % meta['name'])
+        if root == 'layers':
+            parts = cname.split('.')
+            if len(parts) < 3 or not parts[1].isdigit() or int(parts[1]) >= n_layers:
+                raise KeyError("Unknown or out-of-range layer tensor '%s'" % meta['name'])
 
     # Tie LM head
     model.lm_head_weight = model.embed_tokens.weight
-
     model = model.to(device)
     model.eval()
 
     print("Loaded %s from %s (%s, quantized=%s)" % (
         config_name, filepath, device, quantized))
-
     return model
-
-
-def _assign_tensor(model, name, tensor, quantized=False):
-    """Assign a loaded tensor to the appropriate place in the model.
-
-    Handles the mapping from flat state_dict names to our model structure.
-    """
-    parts = name.split('.')
-
-    # Navigate to the target module
-    obj = model
-    for part in parts[:-1]:
-        if part.isdigit():
-            obj = obj[int(part)]
-        elif hasattr(obj, part):
-            obj = getattr(obj, part)
-        else:
-            return  # skip unknown tensors
-
-    param_name = parts[-1]
-
-    # Handle nn.Module parameters
-    if isinstance(obj, torch.nn.Module):
-        if hasattr(obj, param_name):
-            param = getattr(obj, param_name)
-            if isinstance(param, torch.nn.Parameter):
-                param.data.copy_(tensor)
-            elif isinstance(param, torch.Tensor):
-                setattr(obj, param_name, tensor)
-            else:
-                setattr(obj, param_name, tensor)
-        else:
-            setattr(obj, param_name, tensor)
-    else:
-        setattr(obj, param_name, tensor)
 
 
 def load_model_from_hf(model_name, device='cuda', dtype=torch.float16):
@@ -328,8 +443,7 @@ def load_model_from_hf(model_name, device='cuda', dtype=torch.float16):
             hf_sd['%s.fc2.bias' % prefix_hf]
 
     # Load state dict into our model
-    for name, tensor in our_sd.items():
-        _assign_tensor(model, name, tensor.to(dtype))
+    model.load_state_dict({k: v.to(dtype) for k, v in our_sd.items()})
 
     # Tie LM head
     model.lm_head_weight = model.embed_tokens.weight

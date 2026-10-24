@@ -37,15 +37,39 @@ from edgespec.model.opt import OPTModel
 
 
 def create_sample_text_tokens(vocab_size=50272, seq_len=512, seed=42):
-    """Generate pseudo-text sequence with repeated patterns for evaluation."""
+    """Generate or load real text token sequences for evaluation."""
+    # Attempt to load real token IDs from golden data
+    golden_paths = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'golden', 'opt-125m', 'golden_token_ids.json'),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'golden', 'golden_token_ids.json'),
+    ]
+    for gp in golden_paths:
+        if os.path.exists(gp):
+            try:
+                with open(gp, 'r') as f:
+                    data = json.load(f)
+                all_ids = []
+                for item in data:
+                    tids = item.get('token_ids', [])
+                    if tids:
+                        all_ids.extend(tids)
+                if len(all_ids) >= seq_len:
+                    return torch.tensor([all_ids[:seq_len]], dtype=torch.long)
+                elif len(all_ids) > 0:
+                    repeats = (seq_len // len(all_ids)) + 1
+                    tiled = (all_ids * repeats)[:seq_len]
+                    return torch.tensor([tiled], dtype=torch.long)
+            except Exception:
+                pass
+
+    # Fallback to deterministic structured tokens
     torch.manual_seed(seed)
-    # Generate tokens with Zipfian/common word structure (some repetitive tokens to test heavy hitters)
     common_tokens = torch.randint(10, 100, (seq_len // 4,), dtype=torch.long)
-    other_tokens = torch.randint(100, vocab_size // 4, (seq_len - len(common_tokens),), dtype=torch.long)
+    other_tokens = torch.randint(100, min(vocab_size, 10000), (seq_len - len(common_tokens),), dtype=torch.long)
     tokens = torch.cat([common_tokens, other_tokens])
     perm = torch.randperm(seq_len)
     tokens = tokens[perm]
-    return tokens.unsqueeze(0)  # [1, seq_len]
+    return tokens.unsqueeze(0)
 
 
 def evaluate_window_loss(model, input_ids):

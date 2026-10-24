@@ -367,6 +367,7 @@ def main():
     parser.add_argument('--lenience', type=float, default=1.0)
     parser.add_argument('--n-hh', type=int, default=128)
     parser.add_argument('--n-local', type=int, default=128)
+    parser.add_argument('--weights', type=str, default=None)
     parser.add_argument('--decay', type=float, default=0.98)
     parser.add_argument('--device', type=str, default=None)
     parser.add_argument('--output-dir', type=str, default=None)
@@ -380,10 +381,22 @@ def main():
     print("=== EdgeSpec-H2O Benchmark Matrix ===")
     print("Model: %s, Device: %s" % (model_key, device))
 
-    # Create model (this is a placeholder — actual model needs weights)
-    from edgespec.model.opt import OPTModel
-    model = OPTModel(config, dtype=dtype)
-    model = model.to(device)
+    weights_cand = args.weights
+    if not weights_cand or not os.path.isfile(weights_cand):
+        default_p = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'data', 'weights', 'opt-%s-4bit.edgespec' % args.model_size
+        )
+        if os.path.isfile(default_p):
+            weights_cand = default_p
+
+    if weights_cand and os.path.isfile(weights_cand):
+        from edgespec.model.loader import load_model
+        model = load_model(weights_cand, device=device)
+    else:
+        from edgespec.model.opt import OPTModel
+        model = OPTModel(config, dtype=dtype)
+        model = model.to(device)
     model.eval()
 
     # Create test prompts

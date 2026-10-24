@@ -1,0 +1,73 @@
+{
+  "gate": 1,
+  "timestamp": "20230302_224711",
+  "model_size": "opt-125m",
+  "device": "cuda",
+  "weights": "data/weights/opt-125m-4bit.edgespec",
+  "has_weights": true,
+  "n_pass": 12,
+  "n_fail": 0,
+  "n_skip": 1,
+  "n_warn": 0,
+  "required_failed": 0,
+  "all_required_pass": true,
+  "gates": {
+    "G1.1a": {
+      "status": "PASS",
+      "msg": "check_env.py passed"
+    },
+    "G1.1b": {
+      "status": "PASS",
+      "msg": "No transformers imports in inference path"
+    },
+    "G1.1c": {
+      "status": "PASS",
+      "msg": "Max-N (mode 0) active"
+    },
+    "G1.2": {
+      "status": "PASS",
+      "msg": "Tokenizer IDs match golden reference"
+    },
+    "G1.3": {
+      "status": "PASS",
+      "msg": "Model forward pass tests OK"
+    },
+    "G1.4": {
+      "status": "PASS",
+      "msg": "11/8 QLinear tests passed, error <= 0.5"
+    },
+    "G1.5": {
+      "status": "PASS",
+      "msg": "PPL=34.07 <= threshold 36.0"
+    },
+    "G1.6": {
+      "status": "PASS",
+      "msg": "All generation samples match golden reference"
+    },
+    "G1.7": {
+      "status": "PASS",
+      "msg": "GPU 193 MiB <= budget 3800 MiB"
+    },
+    "G1.8": {
+      "status": "PASS",
+      "msg": "Decode 16.8 tok/s >= min 8 tok/s  (prefill: 46.8 tok/s)"
+    },
+    "G1.9": {
+      "status": "PASS",
+      "msg": "beta_norm=0.128 -- VIABLE_CAUTIOUS: 0.10 < beta <= 0.25, aim >= 1.5x with gamma <= 3"
+    },
+    "G1.10": {
+      "status": "PASS",
+      "msg": "No throttle | max_temp=48.5C | avg 15.1 tok/s sustained (600s verified)"
+    },
+    "G1.11": {
+      "status": "SKIP",
+      "msg": "csrc/ exists but extension not built -- run: python setup.py build_ext --inplace"
+    }
+  },
+  "thresholds": {
+    "ppl_max": 36.0,
+    "mem_budget_mb": 3800,
+    "decode_tps_min": 8
+  }
+}

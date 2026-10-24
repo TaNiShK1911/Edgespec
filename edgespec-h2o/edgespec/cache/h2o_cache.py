@@ -328,10 +328,7 @@ class H2OCache(object):
             max_pos = positions_h[valid_mask_h].max().item() if valid_mask_h.any() else 0
             local_start = max_pos - self.n_local + 1
 
-            # Build protection mask
-            protected = torch.zeros(n_valid, device=self.device, dtype=torch.bool)
-
-            # Protect pinned (first n_pin prompt positions starting from min position)
+            # Build protection mask (vectorized across slots)
             valid_pos = positions_h[valid_mask_h]
             if len(valid_pos) > 0:
                 pos_min = valid_pos.min().item()
@@ -339,13 +336,10 @@ class H2OCache(object):
             else:
                 pin_threshold = self.n_pin
 
-            for i in range(n_valid):
-                if valid_mask_h[i]:
-                    p = positions_h[i].item()
-                    if p >= 0 and p < pin_threshold:
-                        protected[i] = True
-                    elif p >= local_start:
-                        protected[i] = True
+            protected = valid_mask_h & (
+                ((positions_h >= 0) & (positions_h < pin_threshold)) |
+                (positions_h >= local_start)
+            )
 
             # Find evictable slots
             evictable = valid_mask_h & ~protected

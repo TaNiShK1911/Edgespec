@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 """H2O parameter sweep & baseline comparison harness (P2-4 / P2-5 / P2-6).
 
-Compares 4 baselines:
+Compares baselines at 20% budget:
 1. Full: full KV cache (unbounded / context size)
 2. Local: recent tokens only (n_hh=0, n_pin=0, n_local=budget)
-3. H2O (lambda=1.0): standard H2O without decay
-4. H2O (lambda<1.0): time-decayed H2O (default lambda=0.98)
+3. H2O: across decay lambdas (1.0, 0.99, 0.98, 0.95) and pins (1, 4)
 
-Sweeps across:
-- Budgets: 10%, 20%, 30%, 50%, 100%
-- Decay lambda: 1.0, 0.99, 0.98, 0.95
-- Pins: 0, 1, 4
+Evaluation methodology:
+- Prefills the first N tokens (N = 25% of the window)
+- Compresses the cache to budget
+- Teacher-forces remaining tokens one at a time through H2O decode path
+  (commit, update_scores, evict_to_budget)
+- Computes loss ONLY on decoded tokens.
+- Requires REAL weights (fails closed if missing).
+- Enforces sanity check: loss < 8.0 and |local - full| > 0.01.
 
 Usage:
     python tools/sweep_h2o.py --quick
@@ -36,9 +39,58 @@ from edgespec.config import OPT_CONFIGS, RESULTS_DIR
 from edgespec.model.opt import OPTModel
 
 
+def find_candidate_weights(weights_path=None, model_size='125m'):
+    """Return an existing path to real weights if available, else None."""
+    candidates = []
+    if weights_path:
+        candidates.append(weights_path)
+
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env_w = os.environ.get('WEIGHTS_PATH')
+    if env_w:
+        candidates.append(env_w)
+
+    candidates.extend([
+        os.path.join(repo_root, 'data', 'weights', 'opt-%s-4bit.edgespec' % model_size),
+        os.path.join(repo_root, 'data', 'weights', 'opt-%s.edgespec' % model_size),
+        '/home/aiml/edgespec/edgespec-h2o/data/weights/opt-%s-4bit.edgespec' % model_size,
+        '/home/aiml/edgespec/edgespec-h2o/data/weights/opt-%s.edgespec' % model_size,
+        '/home/aiml/edgespec/models/opt-%s' % model_size,
+        os.path.join(repo_root, 'models', 'opt-%s' % model_size),
+    ])
+
+    for p in candidates:
+        if p and os.path.exists(p):
+            return p
+    return None
+
+
+def load_real_model(weights_path=None, model_size='125m', device='cpu'):
+    """Load model with real weights. Fails closed if missing."""
+    p = find_candidate_weights(weights_path, model_size)
+    dtype = torch.float32 if device == 'cpu' else torch.float16
+
+    if p:
+        if p.endswith('.edgespec'):
+            from edgespec.model.loader import load_model
+            return load_model(p, device=device, dtype=dtype, quantized=True)
+        elif os.path.isdir(p) or p.endswith('.bin'):
+            from edgespec.model.loader import load_model_from_hf
+            return load_model_from_hf(p, device=device, dtype=dtype)
+
+    # Fallback to HuggingFace hub download if transformers is installed
+    try:
+        from edgespec.model.loader import load_model_from_hf
+        return load_model_from_hf('facebook/opt-%s' % model_size, device=device, dtype=dtype)
+    except Exception as e:
+        raise RuntimeError(
+            "Real weights required for G2.5 quality evaluation, but none found. "
+            "Checked local paths and HF fallback failed: %s" % str(e)
+        )
+
+
 def create_sample_text_tokens(vocab_size=50272, seq_len=512, seed=42):
     """Generate or load real text token sequences for evaluation."""
-    # Attempt to load real token IDs from golden data
     golden_paths = [
         os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'golden', 'opt-125m', 'golden_token_ids.json'),
         os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'golden', 'golden_token_ids.json'),
@@ -62,7 +114,7 @@ def create_sample_text_tokens(vocab_size=50272, seq_len=512, seed=42):
             except Exception:
                 pass
 
-    # Fallback to deterministic structured tokens
+    # Deterministic fallback
     torch.manual_seed(seed)
     common_tokens = torch.randint(10, 100, (seq_len // 4,), dtype=torch.long)
     other_tokens = torch.randint(100, min(vocab_size, 10000), (seq_len - len(common_tokens),), dtype=torch.long)
@@ -72,27 +124,57 @@ def create_sample_text_tokens(vocab_size=50272, seq_len=512, seed=42):
     return tokens.unsqueeze(0)
 
 
-def evaluate_window_loss(model, input_ids):
-    """Evaluate cross-entropy loss over an input sequence using prefill_h2o."""
+def evaluate_window_loss(model, input_ids, prefill_fraction=0.25):
+    """Evaluate cross-entropy loss by prefilling first N tokens (25% of window),
+    compressing cache to budget, then teacher-forcing remaining tokens one at a time
+    through H2O decode path (commit, update_scores, evict_to_budget).
+
+    Computes loss ONLY on the decoded tokens.
+    """
+    seq_len = input_ids.shape[1]
+    n_prefill = max(1, int(seq_len * prefill_fraction))
+    prompt_ids = input_ids[:, :n_prefill]
+
     with torch.no_grad():
-        logits = model.prefill_h2o(input_ids)
-        shift_logits = logits[0, :-1, :].float()
-        shift_labels = input_ids[0, 1:]
-        loss = F.cross_entropy(shift_logits, shift_labels, reduction='mean')
-        return loss.item()
+        # 1. Prefill first N tokens and compress cache to budget
+        model.prefill_h2o(prompt_ids)
+        for cache in model.h2o_caches:
+            cache.evict_to_budget()
+
+        # 2. Teacher-force remaining tokens one at a time through H2O decode path
+        losses = []
+        for t in range(n_prefill, seq_len - 1):
+            curr_token = input_ids[:, t:t + 1]
+            target_token = input_ids[0, t + 1:t + 2]
+
+            for cache in model.h2o_caches:
+                cache.begin_block(1)
+
+            logits, all_probs = model.forward_block_h2o(curr_token, return_attn_probs=True)
+
+            step_loss = F.cross_entropy(logits[0, 0:1, :].float(), target_token)
+            losses.append(step_loss.item())
+
+            for i, cache in enumerate(model.h2o_caches):
+                cache.commit(1)
+                if all_probs is not None and all_probs[i] is not None:
+                    cache.update_scores(all_probs[i], 1)
+                cache.evict_to_budget()
+
+        if not losses:
+            return 0.0
+        return float(sum(losses) / len(losses))
 
 
 def run_baseline_comparison(model, input_ids, max_positions=2048, device='cpu'):
-    """Run the 4 standard baselines (P2-4) at 20% budget."""
+    """Run Full, Local, and H2O baselines across requested lambdas and pins at 20% budget."""
     seq_len = input_ids.shape[1]
-    budget_tokens = int(seq_len * 0.20)
-    pin = 4
-    local = min(128, budget_tokens // 2)
-    hh = max(0, budget_tokens - local - pin)
+    budget_tokens = max(16, int(seq_len * 0.20))
 
     baselines = {}
 
     # 1. Full cache baseline
+    print("  [1/10] Evaluating Full cache baseline...", flush=True)
     model.init_h2o_caches(
         n_hh=seq_len, n_local=seq_len, n_pin=0, n_scratch=8,
         decay=1.0, device=device
@@ -107,8 +189,10 @@ def run_baseline_comparison(model, input_ids, max_positions=2048, device='cpu'):
         'time_sec': full_time, 'mem_mib': full_mem,
         'delta_ppl': 0.0,
     }
+    print("         -> loss=%.4f, ppl=%.2f (%.1fs)" % (full_loss, full_ppl, full_time), flush=True)
 
     # 2. Local only (recent tokens only, no heavy hitters, no pins)
+    print("  [2/10] Evaluating Local cache baseline...", flush=True)
     model.init_h2o_caches(
         n_hh=0, n_local=budget_tokens, n_pin=0, n_scratch=8,
         decay=1.0, device=device
@@ -123,48 +207,66 @@ def run_baseline_comparison(model, input_ids, max_positions=2048, device='cpu'):
         'time_sec': local_time, 'mem_mib': local_mem,
         'delta_ppl': local_ppl - full_ppl,
     }
+    print("         -> loss=%.4f, ppl=%.2f (%.1fs)" % (local_loss, local_ppl, local_time), flush=True)
 
-    # 3. H2O (lambda=1.0, standard)
-    model.init_h2o_caches(
-        n_hh=hh, n_local=local, n_pin=pin, n_scratch=8,
-        decay=1.0, device=device
-    )
-    t0 = time.time()
-    h2o_std_loss = evaluate_window_loss(model, input_ids)
-    h2o_std_time = time.time() - t0
-    h2o_std_ppl = math.exp(h2o_std_loss)
-    h2o_std_mem = model.total_h2o_memory_bytes() / (1024.0 * 1024.0)
-    baselines['H2O (lambda=1.0)'] = {
-        'loss': h2o_std_loss, 'ppl': h2o_std_ppl,
-        'time_sec': h2o_std_time, 'mem_mib': h2o_std_mem,
-        'delta_ppl': h2o_std_ppl - full_ppl,
-    }
+    # Sanity assertion per prompt:
+    # "loss must be < 8.0 on real weights, and Local at a 20% budget must differ from Full by > 0.01."
+    if full_loss >= 8.0:
+        raise AssertionError("Sanity check failed: Full loss %.4f >= 8.0 (real weights required)" % full_loss)
 
-    # 4. H2O (lambda=0.98, time-decayed)
-    model.init_h2o_caches(
-        n_hh=hh, n_local=local, n_pin=pin, n_scratch=8,
-        decay=0.98, device=device
-    )
-    t0 = time.time()
-    h2o_dec_loss = evaluate_window_loss(model, input_ids)
-    h2o_dec_time = time.time() - t0
-    h2o_dec_ppl = math.exp(h2o_dec_loss)
-    h2o_dec_mem = model.total_h2o_memory_bytes() / (1024.0 * 1024.0)
-    baselines['H2O (lambda=0.98)'] = {
-        'loss': h2o_dec_loss, 'ppl': h2o_dec_ppl,
-        'time_sec': h2o_dec_time, 'mem_mib': h2o_dec_mem,
-        'delta_ppl': h2o_dec_ppl - full_ppl,
-    }
+    local_diff = abs(local_loss - full_loss)
+    if local_diff <= 0.01:
+        raise AssertionError(
+            "Sanity check failed: Local at 20%% budget (loss %.4f) differs from Full (loss %.4f) "
+            "by %.5f <= 0.01" % (local_loss, full_loss, local_diff)
+        )
+
+    # 3. Report ppl for Full, Local, H2O at lambda 1.0, 0.99, 0.98, 0.95, and pin 1 and 4
+    lambdas = [1.0, 0.99, 0.98, 0.95]
+    pins = [1, 4]
+
+    step_idx = 2
+    for p in pins:
+        local = min(128, max(8, (budget_tokens - p) // 2))
+        hh = max(0, budget_tokens - p - local)
+
+        for lam in lambdas:
+            step_idx += 1
+            print("  [%d/10] Evaluating H2O (pin=%d, lambda=%.2f)..." % (step_idx, p, lam), flush=True)
+            model.init_h2o_caches(
+                n_hh=hh, n_local=local, n_pin=p, n_scratch=8,
+                decay=lam, device=device
+            )
+            t0 = time.time()
+            loss = evaluate_window_loss(model, input_ids)
+            eval_time = time.time() - t0
+            ppl = math.exp(loss)
+            mem = model.total_h2o_memory_bytes() / (1024.0 * 1024.0)
+
+            key = "H2O (pin=%d, lambda=%.2f)" % (p, lam)
+            baselines[key] = {
+                'loss': loss, 'ppl': ppl,
+                'time_sec': eval_time, 'mem_mib': mem,
+                'delta_ppl': ppl - full_ppl,
+                'pin': p, 'decay': lam,
+            }
+            print("         -> loss=%.4f, ppl=%.2f (%.1fs)" % (loss, ppl, eval_time), flush=True)
+
+    # Also keep backward-compatible keys
+    if 'H2O (pin=4, lambda=1.00)' in baselines:
+        baselines['H2O (lambda=1.0)'] = baselines['H2O (pin=4, lambda=1.00)']
+    if 'H2O (pin=4, lambda=0.98)' in baselines:
+        baselines['H2O (lambda=0.98)'] = baselines['H2O (pin=4, lambda=0.98)']
 
     return baselines
 
 
-def run_full_sweep(model, input_ids, quick=False, device='cpu'):
+def run_full_sweep(model, input_ids, quick=False, device='cpu', baselines=None):
     """Run parameter sweep over budgets, lambdas, and pins."""
     seq_len = input_ids.shape[1]
-    budgets = [10, 20, 30] if quick else [10, 20, 30, 50]
+    budgets = [20] if quick else [10, 20, 30, 50]
     lambdas = [1.0, 0.98] if quick else [1.0, 0.99, 0.98, 0.95]
-    pins = [1, 4] if quick else [0, 1, 4]
+    pins = [1, 4]
 
     sweep_records = []
 
@@ -177,15 +279,23 @@ def run_full_sweep(model, input_ids, quick=False, device='cpu'):
             hh = max(0, budget_tokens - p - local)
 
             for lam in lambdas:
-                model.init_h2o_caches(
-                    n_hh=hh, n_local=local, n_pin=p, n_scratch=8,
-                    decay=lam, device=device
-                )
-                t0 = time.time()
-                loss = evaluate_window_loss(model, input_ids)
-                eval_time = time.time() - t0
-                ppl = math.exp(loss)
-                mem = model.total_h2o_memory_bytes() / (1024.0 * 1024.0)
+                key = "H2O (pin=%d, lambda=%.2f)" % (p, lam)
+                if b == 20 and baselines and key in baselines:
+                    b_entry = baselines[key]
+                    loss = b_entry['loss']
+                    ppl = b_entry['ppl']
+                    mem = b_entry['mem_mib']
+                    eval_time = b_entry['time_sec']
+                else:
+                    model.init_h2o_caches(
+                        n_hh=hh, n_local=local, n_pin=p, n_scratch=8,
+                        decay=lam, device=device
+                    )
+                    t0 = time.time()
+                    loss = evaluate_window_loss(model, input_ids)
+                    eval_time = time.time() - t0
+                    ppl = math.exp(loss)
+                    mem = model.total_h2o_memory_bytes() / (1024.0 * 1024.0)
 
                 record = {
                     'budget_pct': b,
@@ -208,44 +318,53 @@ def main():
     parser = argparse.ArgumentParser(description='H2O parameter sweep & baselines')
     parser.add_argument('--model-size', type=str, default='125m', choices=['125m', '1.3b'])
     parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--weights', type=str, default=None)
     parser.add_argument('--quick', action='store_true', default=False)
     parser.add_argument('--seq-len', type=int, default=256)
     parser.add_argument('--output', type=str, default=None)
     args = parser.parse_args()
 
+    # Enforce device sanity: do not claim cuda unless available
+    if args.device == 'cuda' and not torch.cuda.is_available():
+        print("Warning: CUDA requested but not available. Falling back to CPU.")
+        args.device = 'cpu'
+
     print("\n" + "=" * 70)
-    print("  H2O Cache Sweep & Baseline Harness (P2-4 / P2-5)")
+    print("  H2O Cache Sweep & Baseline Harness (P2-4 / P2-5 / G2.5)")
     print("  Model: opt-%s  |  Device: %s  |  Context: %d tokens" %
           (args.model_size, args.device, args.seq_len))
     print("=" * 70)
 
-    config = OPT_CONFIGS['opt-%s' % args.model_size]
-    dtype = torch.float32 if args.device == 'cpu' else torch.float16
-    model = OPTModel(config, dtype=dtype)
-    model = model.to(args.device).to(dtype)
-    model.lm_head_weight = model.embed_tokens.weight
-    model.eval()
+    # Require real weights
+    model = load_real_model(args.weights, model_size=args.model_size, device=args.device)
 
+    config = OPT_CONFIGS['opt-%s' % args.model_size]
     input_ids = create_sample_text_tokens(
         vocab_size=config['vocab_size'],
         seq_len=args.seq_len,
     ).to(args.device)
 
-    # 1. Baseline comparisons (P2-4)
+    # 1. Baseline comparisons (P2-4 / G2.5)
     print("\n--- Running P2-4 Baselines (at 20% budget) ---")
     baselines = run_baseline_comparison(model, input_ids, config.get('max_positions', 2048), args.device)
 
-    print("\n%-20s %-10s %-10s %-12s %-12s" %
+    print("\n%-30s %-10s %-10s %-12s %-12s" %
           ("Baseline", "Loss", "PPL", "Delta PPL", "Memory (MiB)"))
-    print("-" * 65)
+    print("-" * 75)
     for name, data in baselines.items():
-        print("%-20s %-10.4f %-10.2f %-+12.2f %-12.2f" %
-              (name, data['loss'], data['ppl'], data['delta_ppl'], data['mem_mib']))
-    print("-" * 65)
+        if not name.startswith('H2O ('):
+            print("%-30s %-10.4f %-10.2f %-+12.2f %-12.2f" %
+                  (name, data['loss'], data['ppl'], data['delta_ppl'], data['mem_mib']))
+    for name, data in baselines.items():
+        if name.startswith('H2O ('):
+            print("%-30s %-10.4f %-10.2f %-+12.2f %-12.2f" %
+                  (name, data['loss'], data['ppl'], data['delta_ppl'], data['mem_mib']))
+    print("-" * 75)
 
     # 2. Parameter sweep (P2-5)
     print("\n--- Running P2-5 Parameter Sweep ---")
-    sweep = run_full_sweep(model, input_ids, quick=args.quick, device=args.device)
+    sys.stdout.flush()
+    sweep = run_full_sweep(model, input_ids, quick=args.quick, device=args.device, baselines=baselines)
 
     print("\n%-10s %-8s %-8s %-8s %-10s %-10s %-10s" %
           ("Budget %", "Pin", "Local", "HH", "Decay", "PPL", "Mem (MiB)"))
@@ -257,7 +376,6 @@ def main():
     print("-" * 70)
 
     # Recalibration Checkpoint (P2-6)
-    # Find best configuration at 20% budget
     b20_records = [r for r in sweep if r['budget_pct'] == 20]
     best_b20 = min(b20_records, key=lambda x: x['loss']) if b20_records else None
 

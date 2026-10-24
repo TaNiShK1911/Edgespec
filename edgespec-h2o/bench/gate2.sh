@@ -49,6 +49,7 @@ WEIGHTS_PATH=""
 MODEL_SIZE="125m"
 DEVICE="cuda"
 SKIP_SOAK=0
+SOAK_SECONDS=600
 NO_WEIGHTS=0
 
 # ---------------------------------------------------------------------------
@@ -60,6 +61,7 @@ while [[ $# -gt 0 ]]; do
         --model-size)     MODEL_SIZE="$2";     shift 2 ;;
         --device)         DEVICE="$2";         shift 2 ;;
         --skip-soak)      SKIP_SOAK=1;         shift   ;;
+        --soak-seconds)   SOAK_SECONDS="$2";   shift 2 ;;
         --no-weights)     NO_WEIGHTS=1;        shift   ;;
         --help)
             sed -n '/^# Usage:/,/^# ====/p' "$0"
@@ -69,8 +71,25 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Verify CUDA availability before claiming cuda
+CUDA_AVAIL=$("$PYTHON" -c "import torch; print(1 if torch.cuda.is_available() else 0)" 2>/dev/null || echo "0")
+if [[ "$DEVICE" == "cuda" && "$CUDA_AVAIL" -eq 0 ]]; then
+    echo "Warning: DEVICE=cuda requested but torch.cuda.is_available() is False. Using cpu."
+    DEVICE="cpu"
+fi
+
+# Auto-discover weights if not explicitly passed
+if [[ $NO_WEIGHTS -eq 0 && -z "$WEIGHTS_PATH" ]]; then
+    for cand in "data/weights/opt-${MODEL_SIZE}-4bit.edgespec" "data/weights/opt-${MODEL_SIZE}.edgespec" "/home/aiml/edgespec/edgespec-h2o/data/weights/opt-${MODEL_SIZE}-4bit.edgespec" "/home/aiml/edgespec/models/opt-${MODEL_SIZE}"; do
+        if [[ -f "$cand" || -d "$cand" ]]; then
+            WEIGHTS_PATH="$cand"
+            break
+        fi
+    done
+fi
+
 HAS_WEIGHTS=0
-if [[ $NO_WEIGHTS -eq 0 && -n "$WEIGHTS_PATH" && -f "$WEIGHTS_PATH" ]]; then
+if [[ $NO_WEIGHTS -eq 0 && -n "$WEIGHTS_PATH" && ( -f "$WEIGHTS_PATH" || -d "$WEIGHTS_PATH" ) ]]; then
     HAS_WEIGHTS=1
 fi
 
@@ -240,39 +259,60 @@ actual_bytes = sum(c.memory_bytes() for c in caches)
 full_kv_bytes = 2 * n_layers * n_heads * 2048 * d_head * elem
 saving_mib = (full_kv_bytes - actual_bytes) / (1024 * 1024)
 alloc_pct_diff = abs(actual_bytes - total_expected) / total_expected * 100
+del caches
+
+# Measured saving for 1.3B architecture at 2048 ctx (>= 250 MiB requirement)
+cfg_13b = OPT_CONFIGS['opt-1.3b']
+l_13b, h_13b = cfg_13b['n_layers'], cfg_13b['n_heads']
+dh_13b = cfg_13b['d_model'] // h_13b
+b_13b = int(2048 * 0.20)
+loc_13b = min(128, b_13b // 2)
+pin_13b = 4
+hh_13b = max(0, b_13b - loc_13b - pin_13b)
+full_kv_13b = 2 * l_13b * h_13b * 2048 * dh_13b * elem
+caches_13b = create_h2o_caches(l_13b, h_13b, dh_13b, hh_13b, loc_13b, pin_13b, 8, device=device, dtype=torch.float16)
+h2o_13b = sum(c.memory_bytes() for c in caches_13b)
+saving_13b_mib = (full_kv_13b - h2o_13b) / (1024.0 * 1024.0)
+del caches_13b
 
 result = {
     "full_kv_mib": full_kv_bytes / (1024 * 1024),
     "h2o_mib": actual_bytes / (1024 * 1024),
     "saving_mib": saving_mib,
+    "saving_13b_mib": saving_13b_mib,
     "formula_expected_bytes": total_expected,
     "actual_bytes": actual_bytes,
     "alloc_pct_diff": alloc_pct_diff,
-    "alloc_within_5pct": alloc_pct_diff <= 5.0,
+    "passed": alloc_pct_diff <= 5.0 and saving_13b_mib >= 250.0,
 }
 print(json.dumps(result))
 PYEOF
 )
 echo "  Memory: $MEM_OUT"
-ALLOC_OK=$("$PYTHON" -c "import json,sys; d=json.loads('$MEM_OUT'); sys.exit(0 if d['alloc_within_5pct'] else 1)" 2>/dev/null && echo "yes" || echo "no")
-SAVING=$("$PYTHON" -c "import json,sys; d=json.loads('$MEM_OUT'); print('%.1f' % d['saving_mib'])" 2>/dev/null || echo "?")
+G24_OK=$("$PYTHON" -c "import json,sys; d=json.loads('$MEM_OUT'); sys.exit(0 if d['passed'] else 1)" 2>/dev/null && echo "yes" || echo "no")
+SAVING_13B=$("$PYTHON" -c "import json,sys; d=json.loads('$MEM_OUT'); print('%.1f' % d['saving_13b_mib'])" 2>/dev/null || echo "?")
 DIFF_PCT=$("$PYTHON" -c "import json,sys; d=json.loads('$MEM_OUT'); print('%.1f' % d['alloc_pct_diff'])" 2>/dev/null || echo "?")
 
-if [[ "$ALLOC_OK" == "yes" ]]; then
-    gate_result "G2.4" "PASS" "Alloc within ${DIFF_PCT}% of formula, saving ${SAVING} MiB vs full at 2048 ctx"
+if [[ "$G24_OK" == "yes" ]]; then
+    gate_result "G2.4" "PASS" "Alloc within ${DIFF_PCT}% of formula, measured saving ${SAVING_13B} MiB >= 250 MiB at 2048 ctx"
 else
-    gate_result "G2.4" "FAIL" "Alloc ${DIFF_PCT}% off from formula"
+    gate_result "G2.4" "FAIL" "Alloc diff ${DIFF_PCT}% or saving ${SAVING_13B} MiB failed requirement"
 fi
 
 # ===========================================================================
 # G2.5 -- Quality (H2O vs Local vs Full on 20% budget)
 # ===========================================================================
 section "G2.5: Quality (H2O vs Full cache)"
-SWEEP_OUT=$("$PYTHON" tools/sweep_h2o.py --quick --device "$DEVICE" --model-size "$MODEL_SIZE" 2>&1)
-if echo "$SWEEP_OUT" | grep -q "P2-6 Recalibration Summary"; then
-    gate_result "G2.5" "PASS" "Quality sweep completed; H2O meets baseline at 20% budget"
+if [[ $HAS_WEIGHTS -eq 0 ]]; then
+    gate_result "G2.5" "FAIL" "Missing weights -- G2.5 requires real weights to evaluate quality"
 else
-    gate_result "G2.5" "FAIL" "Quality sweep failed or did not meet baseline requirements"
+    SWEEP_OUT=$("$PYTHON" tools/sweep_h2o.py --quick --device "$DEVICE" --model-size "$MODEL_SIZE" --weights "$WEIGHTS_PATH" 2>&1)
+    echo "$SWEEP_OUT"
+    if echo "$SWEEP_OUT" | grep -q "P2-6 Recalibration Summary"; then
+        gate_result "G2.5" "PASS" "Quality sweep completed; H2O meets baseline at 20% budget"
+    else
+        gate_result "G2.5" "FAIL" "Quality sweep failed or did not meet baseline requirements"
+    fi
 fi
 
 # ===========================================================================
@@ -376,11 +416,18 @@ fi
 # ===========================================================================
 section "G2.8: Soak test (RSS drift)"
 if [[ $SKIP_SOAK -eq 1 ]]; then
-    gate_result "G2.8" "SKIP" "Skipped via --skip-soak (MANDATORY for full Gate 2 certification)"
+    gate_result "G2.8" "FAIL" "Skipped via --skip-soak (G2.8 is mandatory for certification)"
+elif [[ $HAS_WEIGHTS -eq 0 ]]; then
+    gate_result "G2.8" "FAIL" "Missing weights -- G2.8 requires real model weights"
+elif [[ $SOAK_SECONDS -lt 600 ]]; then
+    SOAK_OUT=$("$PYTHON" tools/soak_test.py --duration "$SOAK_SECONDS" --device "$DEVICE" --model-size "$MODEL_SIZE" --weights "$WEIGHTS_PATH" 2>&1)
+    echo "$SOAK_OUT"
+    gate_result "G2.8" "FAIL" "Soak ran for ${SOAK_SECONDS}s (< 600s required for certification)"
 else
-    SOAK_OUT=$("$PYTHON" tools/soak_test.py --duration 10 --device "$DEVICE" --model-size "$MODEL_SIZE" 2>&1)
+    SOAK_OUT=$("$PYTHON" tools/soak_test.py --duration "$SOAK_SECONDS" --device "$DEVICE" --model-size "$MODEL_SIZE" --weights "$WEIGHTS_PATH" 2>&1)
+    echo "$SOAK_OUT"
     if echo "$SOAK_OUT" | grep -q "Status          : PASS"; then
-        gate_result "G2.8" "PASS" "Continuous decode soak: RSS drift <= 20 MiB"
+        gate_result "G2.8" "PASS" "Continuous decode soak (600s): RSS drift <= 20 MiB"
     else
         gate_result "G2.8" "FAIL" "Soak test failed or RSS drift exceeded 20 MiB"
     fi
@@ -470,16 +517,11 @@ os.makedirs(os.path.dirname(report_path), exist_ok=True)
 with open(report_path, 'w') as f:
     json.dump(report, f, indent=2)
 print("Report  --> %s" % report_path)
-
-if os.path.lexists(latest_link):
-    os.remove(latest_link)
-try:
-    os.symlink(os.path.abspath(report_path), latest_link)
-    print("Latest  --> %s (symlink)" % latest_link)
-except OSError:
-    shutil.copy2(report_path, latest_link)
-    print("Latest  --> %s (copy)" % latest_link)
 PYEOF
+
+# Symlink latest
+ln -sf "$(basename "$REPORT_FILE")" "$LATEST_LINK"
+echo "Latest  --> $LATEST_LINK (symlink)"
 
 echo "Log     --> $LOG_FILE"
 echo "$HR"

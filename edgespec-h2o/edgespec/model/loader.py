@@ -30,6 +30,7 @@ import io
 import json
 import os
 import struct
+import sys
 
 import torch
 
@@ -353,8 +354,9 @@ def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
     model = model.to(device)
     model.eval()
 
-    print("Loaded %s from %s (%s, quantized=%s)" % (
+    sys.stderr.write("Loaded %s from %s (%s, quantized=%s)\n" % (
         config_name, filepath, device, quantized))
+    sys.stderr.flush()
     return model
 
 

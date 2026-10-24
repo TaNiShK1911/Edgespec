@@ -63,10 +63,17 @@ class QLinear(nn.Module):
         -------
         torch.Tensor [out_features, in_features] float16
         """
-        return _dequantize_int4(
+        curr_ver = getattr(self.qweight, '_version', None)
+        if (hasattr(self, '_cached_weight') and self._cached_weight is not None
+                and getattr(self, '_cached_version', None) == curr_ver):
+            return self._cached_weight
+        w = _dequantize_int4(
             self.qweight, self.scales, self.zeros,
             self.group_size, self.in_features
         )
+        self._cached_weight = w
+        self._cached_version = curr_ver
+        return w
 
     def forward(self, x):
         """y = x @ W^T + bias where W is dequantized on-the-fly.

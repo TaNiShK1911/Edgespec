@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """Continuous generation soak test (P2-8 / G2.8).
 
-Runs continuous generation with H2O cache to verify memory stability
-under sustained operation.
+Runs continuous generation with H2O cache on real model weights to verify
+memory stability under sustained operation.
 
 Pass criterion (Gate G2.8):
-- 10-minute continuous generation (or configured duration): RSS drift <= 20 MiB,
+- 10-minute (600s) continuous generation: RSS drift <= 20 MiB,
   no OOM, temps logged.
 
 Usage:
@@ -27,7 +27,7 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from edgespec.config import OPT_CONFIGS, RESULTS_DIR
-from edgespec.model.opt import OPTModel
+from tools.sweep_h2o import load_real_model, create_sample_text_tokens
 
 
 def get_current_rss_mib():
@@ -49,7 +49,6 @@ def get_current_rss_mib():
 def read_system_temps():
     """Read temperatures if available (Jetson thermal zones or psutil)."""
     temps = {}
-    # Try Linux thermal zones
     for i in range(8):
         zone_path = '/sys/devices/virtual/thermal/thermal_zone%d/temp' % i
         type_path = '/sys/devices/virtual/thermal/thermal_zone%d/type' % i
@@ -77,19 +76,20 @@ def read_system_temps():
     return temps
 
 
-def run_soak_test(duration_sec=600, model_size='125m', device='cpu'):
-    """Run continuous decode loop for duration_sec and track RSS."""
+def run_soak_test(duration_sec=600, model_size='125m', device='cpu', weights_path=None):
+    """Run continuous decode loop for duration_sec on real model and track RSS."""
+    if device == 'cuda' and not torch.cuda.is_available():
+        print("Warning: CUDA requested but not available. Falling back to CPU.")
+        device = 'cpu'
+
     print("\n" + "=" * 65)
-    print("  Soak Test (G2.8): %s on %s for %d seconds" %
+    print("  Soak Test (G2.8): opt-%s on %s for %d seconds" %
           (model_size, device, duration_sec))
     print("=" * 65)
 
+    # Require real weights
+    model = load_real_model(weights_path=weights_path, model_size=model_size, device=device)
     config = OPT_CONFIGS['opt-%s' % model_size]
-    dtype = torch.float32 if device == 'cpu' else torch.float16
-    model = OPTModel(config, dtype=dtype)
-    model = model.to(device).to(dtype)
-    model.lm_head_weight = model.embed_tokens.weight
-    model.eval()
 
     # Initialize H2O cache with 20% budget
     budget = int(config.get('max_positions', 2048) * 0.20)
@@ -101,9 +101,8 @@ def run_soak_test(duration_sec=600, model_size='125m', device='cpu'):
         decay=0.98, device=device,
     )
 
-    # Short prefill
-    prompt = torch.randint(10, config['vocab_size'], (1, 32),
-                           device=device, dtype=torch.long)
+    # Short prefill using sample tokens
+    prompt = create_sample_text_tokens(vocab_size=config['vocab_size'], seq_len=32).to(device)
     with torch.no_grad():
         logits = model.prefill_h2o(prompt)
     curr_token = logits[0, -1, :].argmax(dim=-1).item()
@@ -198,13 +197,19 @@ def main():
     parser.add_argument('--model-size', type=str, default='125m',
                         choices=['125m', '1.3b'])
     parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--weights', type=str, default=None)
     parser.add_argument('--output', type=str, default=None)
     args = parser.parse_args()
+
+    if args.device == 'cuda' and not torch.cuda.is_available():
+        print("Warning: CUDA requested but not available. Falling back to CPU.")
+        args.device = 'cpu'
 
     res = run_soak_test(
         duration_sec=args.duration,
         model_size=args.model_size,
         device=args.device,
+        weights_path=args.weights,
     )
 
     out_path = args.output or os.path.join(RESULTS_DIR, 'soak_test_%s.json' % args.model_size)

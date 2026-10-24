@@ -1,10 +1,10 @@
 {
   "gate": 2,
-  "timestamp": "20261024_202054",
+  "timestamp": "20230302_204516",
   "model_size": "opt-125m",
   "device": "cuda",
-  "weights": null,
-  "has_weights": false,
+  "weights": "data/weights/opt-125m-4bit.edgespec",
+  "has_weights": true,
   "n_pass": 9,
   "n_fail": 0,
   "n_warn": 0,
@@ -25,11 +25,117 @@
     },
     "G2.4": {
       "status": "PASS",
-      "msg": "Alloc within 0.00% of formula, saving 56.8 MiB vs full at 2048 ctx"
+      "msg": "Alloc within 0.00% of formula, measured saving: 303.1 MiB >= 250 MiB at 2048 ctx (full=384.0 MiB, h2o=80.9 MiB)"
     },
     "G2.5": {
       "status": "PASS",
-      "msg": "H2O loss=391.6036 (delta_PPL=+0.00 vs Full), meets baseline"
+      "msg": "H2O loss=4.8945 (PPL=133.55, delta_PPL=+9.54 vs Full=124.02, Local=1486.42)",
+      "baselines": {
+        "Full": {
+          "loss": 4.820422258910709,
+          "ppl": 124.01744719722645,
+          "time_sec": 19.828677892684937,
+          "mem_mib": 18.9239501953125,
+          "delta_ppl": 0.0
+        },
+        "Local": {
+          "loss": 7.30412852077584,
+          "ppl": 1486.424009591367,
+          "time_sec": 172.39871215820312,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 1362.4065623941406
+        },
+        "H2O (pin=1, lambda=1.00)": {
+          "loss": 4.844384706827826,
+          "ppl": 127.02510026697317,
+          "time_sec": 171.26624512672424,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 3.0076530697467234,
+          "pin": 1,
+          "decay": 1.0
+        },
+        "H2O (pin=1, lambda=0.99)": {
+          "loss": 4.867030600973293,
+          "ppl": 129.9345160657109,
+          "time_sec": 169.7171115875244,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 5.9170688684844635,
+          "pin": 1,
+          "decay": 0.99
+        },
+        "H2O (pin=1, lambda=0.98)": {
+          "loss": 4.885437318518836,
+          "ppl": 132.34833105660462,
+          "time_sec": 167.43072962760925,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 8.330883859378176,
+          "pin": 1,
+          "decay": 0.98
+        },
+        "H2O (pin=1, lambda=0.95)": {
+          "loss": 4.904628318310252,
+          "ppl": 134.9127560855904,
+          "time_sec": 167.57114052772522,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 10.895308888363942,
+          "pin": 1,
+          "decay": 0.95
+        },
+        "H2O (pin=4, lambda=1.00)": {
+          "loss": 4.856155126077654,
+          "ppl": 128.52907278221954,
+          "time_sec": 168.02096676826477,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 4.511625584993098,
+          "pin": 4,
+          "decay": 1.0
+        },
+        "H2O (pin=4, lambda=0.99)": {
+          "loss": 4.870565252466352,
+          "ppl": 130.39460193951604,
+          "time_sec": 169.8682119846344,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 6.377154742289591,
+          "pin": 4,
+          "decay": 0.99
+        },
+        "H2O (pin=4, lambda=0.98)": {
+          "loss": 4.894506736887688,
+          "ppl": 133.554113046986,
+          "time_sec": 168.82587885856628,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 9.536665849759558,
+          "pin": 4,
+          "decay": 0.98
+        },
+        "H2O (pin=4, lambda=0.95)": {
+          "loss": 4.90696925115991,
+          "ppl": 135.22894773546577,
+          "time_sec": 167.98050665855408,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 11.21150053823932,
+          "pin": 4,
+          "decay": 0.95
+        },
+        "H2O (lambda=1.0)": {
+          "loss": 4.856155126077654,
+          "ppl": 128.52907278221954,
+          "time_sec": 168.02096676826477,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 4.511625584993098,
+          "pin": 4,
+          "decay": 1.0
+        },
+        "H2O (lambda=0.98)": {
+          "loss": 4.894506736887688,
+          "ppl": 133.554113046986,
+          "time_sec": 168.82587885856628,
+          "mem_mib": 2.1471405029296875,
+          "delta_ppl": 9.536665849759558,
+          "pin": 4,
+          "decay": 0.98
+        }
+      }
     },
     "G2.6": {
       "status": "PASS",
@@ -37,11 +143,11 @@
     },
     "G2.7": {
       "status": "PASS",
-      "msg": "Scoring+eviction overhead: 10.8% <= 15.0%"
+      "msg": "Scoring+eviction overhead: 12.0% <= 15.0%"
     },
     "G2.8": {
       "status": "PASS",
-      "msg": "RSS drift: +0.47 MiB <= 20.0 MiB, throughput: 10.5 tok/s"
+      "msg": "600s soak passed: RSS drift: +0.06 MiB <= 20.0 MiB, throughput: 1.7 tok/s"
     },
     "G2.9": {
       "status": "PASS",

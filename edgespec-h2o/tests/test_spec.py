@@ -481,3 +481,113 @@ class TestDemoValidator(object):
         result = evaluate_triage(output, labels)
         assert result['top_offender_found'] is True
         assert result['top_offender_ip'] == '10.0.0.1'
+
+
+# =========================================================================== #
+#  G3.2: Speculative Greedy Equivalence Test
+# =========================================================================== #
+
+class TestSpeculativeGreedyEquivalence(object):
+    """G3.2: With eviction off (budget >= context), speculative greedy at lenience 1.0
+    must equal plain greedy for 20 prompts x 128 tokens using real OPT-125M weights.
+    Allow <= 1% mismatches, and each mismatch must be a near-tie (top-2 logit margin < 0.05).
+    """
+
+    def test_greedy_equivalence_real_weights(self):
+        from edgespec.model.loader import load_model
+        from edgespec.spec.drafter import SuffixDrafter
+        from edgespec.spec.sampler import SpeculativeSampler
+        from edgespec.spec.verifier import SpeculativeVerifier
+
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        candidates = [
+            os.path.join(base_dir, 'data', 'weights', 'opt-125m-4bit.edgespec'),
+            os.path.expanduser('~/edgespec/edgespec-h2o/data/weights/opt-125m-4bit.edgespec'),
+            os.path.expanduser('~/edgespec/models/opt-125m'),
+        ]
+        weights_path = None
+        for p in candidates:
+            if os.path.exists(p):
+                weights_path = p
+                break
+
+        if weights_path is None:
+            pytest.skip("OPT-125M real weights not found for greedy equivalence test")
+
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        model = load_model(weights_path, device=device)
+        model.eval()
+
+        torch.manual_seed(42)
+        random.seed(42)
+        vocab_size = model.config['vocab_size']
+        n_prompts = 20
+        max_new_tokens = 128
+
+        total_tokens = 0
+        mismatches = 0
+        near_ties = 0
+
+        for pi in range(n_prompts):
+            p_len = 16 + (pi % 17)
+            prompt_ids = torch.randint(10, min(1000, vocab_size), (1, p_len), device=device, dtype=torch.long)
+
+            # Plain greedy baseline
+            model.reset_caches()
+            model.init_kv_caches(device=device)
+            baseline_full = model.generate_greedy(prompt_ids, max_new_tokens=max_new_tokens)
+            baseline_gen = baseline_full[p_len:]
+
+            # Speculative greedy with eviction off (budget >= 2048) and lenience 1.0
+            model.reset_caches()
+            model.init_h2o_caches(
+                n_hh=2048,
+                n_local=128,
+                n_pin=4,
+                n_scratch=8,
+                decay=1.0,
+                device=device
+            )
+            drafter = SuffixDrafter(max_n=4, selector='importance')
+            sampler = SpeculativeSampler(mode='greedy', lenience=1.0)
+            verifier = SpeculativeVerifier(
+                model=model,
+                drafter=drafter,
+                sampler=sampler,
+                gamma_fixed=3
+            )
+            spec_full, _ = verifier.generate(
+                prompt_ids,
+                max_new_tokens=max_new_tokens
+            )
+            spec_gen = spec_full[p_len:]
+
+            comp_len = min(len(baseline_gen), len(spec_gen))
+            for t in range(comp_len):
+                total_tokens += 1
+                b_tok = baseline_gen[t]
+                s_tok = spec_gen[t]
+                if b_tok != s_tok:
+                    mismatches += 1
+                    # Verify near-tie: top-2 logit margin < 0.05
+                    prefix = baseline_full[:p_len + t]
+                    prefix_tensor = torch.tensor([prefix], device=device, dtype=torch.long)
+                    model.reset_caches()
+                    model.init_kv_caches(device=device)
+                    with torch.no_grad():
+                        logits = model.prefill_chunked(prefix_tensor)
+                    last_logits = logits[0, -1, :]
+                    top2 = torch.topk(last_logits, 2).values
+                    margin = (top2[0] - top2[1]).item()
+                    assert margin < 0.05, (
+                        "Mismatch at prompt %d, token %d (b=%d, s=%d) is not a near-tie (margin=%.4f >= 0.05)"
+                        % (pi, t, b_tok, s_tok, margin)
+                    )
+                    near_ties += 1
+                    break
+
+        mismatch_rate = (mismatches / float(total_tokens)) if total_tokens > 0 else 0.0
+        assert mismatch_rate <= 0.01, (
+            "Mismatch rate %.3f%% > 1.0%% (mismatches=%d, near_ties=%d, total=%d)"
+            % (mismatch_rate * 100.0, mismatches, near_ties, total_tokens)
+        )

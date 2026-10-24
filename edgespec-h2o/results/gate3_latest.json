@@ -1,0 +1,11 @@
+{
+  "gate": 3,
+  "passed": 8,
+  "failed": 0,
+  "total": 8,
+  "overall": "PASS",
+  "device": "cuda",
+  "model": "opt-125m",
+  "gamma": 4,
+  "lenience": 1.0
+}

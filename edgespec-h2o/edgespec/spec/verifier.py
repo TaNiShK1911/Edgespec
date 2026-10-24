@@ -183,27 +183,11 @@ class SpeculativeVerifier(object):
         n_commit = len(accepted_ids)
 
         # --- Commit ---
-        # We need to commit n_commit tokens in the cache
-        # The first token in the verify input was the re-processed last token,
-        # so we commit positions 1..n_commit (the draft/correction tokens)
-        # But the cache already has the last token, so we committed
-        # n_verify new KV entries; keep n_commit of them (skip the first
-        # which is the already-committed last token... but actually the
-        # cache's begin_block reserved slots for ALL n_verify tokens).
-        #
-        # Important nuance: the first position in our verify block is the
-        # re-run of the last committed token. In the H2O cache, we've
-        # already committed that token. But forward_block_h2o appended
-        # KV for it again. We need to handle this carefully.
-        #
-        # Actually, the verifier forward produces KV for n_verify positions.
-        # We want to keep KV for positions 1..n_commit (the new tokens).
-        # Position 0's KV is redundant (it's the last committed token).
-        # But since we can only commit contiguous from the start, we need
-        # to commit all n_commit entries and the model handles it.
-        #
-        # Simpler approach: commit n_commit, which includes the re-run of
-        # last token + accepted tokens. The cache handles dedup.
+        # Cache Invariant: The cache holds every token except the last committed one.
+        # Position 0 of verify_input ([last_token] + draft_ids) is the last committed
+        # token whose KV was not yet in the cache. Calling cache.commit(n_commit)
+        # commits position 0 (the previous last token) plus the accepted draft tokens,
+        # maintaining the invariant for the next step.
         for i, cache in enumerate(self.model.h2o_caches):
             cache.commit(n_commit)
             if all_attn_probs is not None and all_attn_probs[i] is not None:

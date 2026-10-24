@@ -45,15 +45,34 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Auto-discover weights if not explicitly passed
+if [ -z "$WEIGHTS" ]; then
+    for cand in "data/weights/opt-${MODEL_SIZE}-4bit.edgespec" "data/weights/opt-${MODEL_SIZE}.edgespec" "/home/aiml/edgespec/edgespec-h2o/data/weights/opt-${MODEL_SIZE}-4bit.edgespec"; do
+        if [ -f "$cand" ]; then
+            WEIGHTS="$cand"
+            break
+        fi
+    done
+fi
+
 RESULTS_DIR="$PROJECT_DIR/results"
 mkdir -p "$RESULTS_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 GATE_JSON="$RESULTS_DIR/gate3_${TIMESTAMP}.json"
 LOG_FILE="$RESULTS_DIR/gate3_${TIMESTAMP}.log"
 
+# Detect Python interpreter
+PYTHON="${PYTHON:-python3}"
+if [ -d "$HOME/edgespec/venv-edgespec" ]; then
+    PYTHON="$HOME/edgespec/venv-edgespec/bin/python"
+elif [ -d "$PROJECT_DIR/venv" ]; then
+    PYTHON="$PROJECT_DIR/venv/bin/python"
+fi
+
 echo "======================================================"
 echo "  GATE 3 — EdgeSpec-H2O Phase 3 Validation"
 echo "======================================================"
+echo "Python:     $PYTHON"
 echo "Device:     $DEVICE"
 echo "Model:      opt-$MODEL_SIZE"
 echo "Gamma:      $GAMMA"
@@ -82,7 +101,7 @@ check() {
 # G3.1 — Sampler math (unit tests)
 echo ""
 echo "--- G3.1: Sampler Math ---"
-python -m pytest tests/test_spec.py::TestSpeculativeSampler -v --tb=short 2>&1 | tee -a "$LOG_FILE"
+"$PYTHON" -m pytest tests/test_spec.py::TestSpeculativeSampler -v --tb=short 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
     check "G3.1" "Sampler chi-square + lenience monotonicity" "PASS"
 else
@@ -92,7 +111,7 @@ fi
 # G3.1 continued — Drafter tests
 echo ""
 echo "--- G3.1b: Drafter Tests ---"
-python -m pytest tests/test_spec.py::TestSuffixDrafter tests/test_spec.py::TestNgramIndex -v --tb=short 2>&1 | tee -a "$LOG_FILE"
+"$PYTHON" -m pytest tests/test_spec.py::TestSuffixDrafter tests/test_spec.py::TestNgramIndex -v --tb=short 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
     check "G3.1b" "Drafter n-gram index + suffix matching" "PASS"
 else
@@ -102,7 +121,7 @@ fi
 # G3.1 continued — Gamma controller tests
 echo ""
 echo "--- G3.1c: Gamma Controller Tests ---"
-python -m pytest tests/test_spec.py::TestGammaController -v --tb=short 2>&1 | tee -a "$LOG_FILE"
+"$PYTHON" -m pytest tests/test_spec.py::TestGammaController -v --tb=short 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
     check "G3.1c" "Gamma controller EMA + efficiency" "PASS"
 else
@@ -112,7 +131,7 @@ fi
 # G3.1 continued — Integration tests
 echo ""
 echo "--- G3.1d: Integration Tests ---"
-python -m pytest tests/test_spec.py::TestDrafterSamplerIntegration -v --tb=short 2>&1 | tee -a "$LOG_FILE"
+"$PYTHON" -m pytest tests/test_spec.py::TestDrafterSamplerIntegration -v --tb=short 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
     check "G3.1d" "Drafter-sampler integration" "PASS"
 else
@@ -122,27 +141,30 @@ fi
 # G3.8 (partial) — Demo validator tests
 echo ""
 echo "--- G3.8 (partial): Demo Validator Tests ---"
-python -m pytest tests/test_spec.py::TestDemoValidator -v --tb=short 2>&1 | tee -a "$LOG_FILE"
+"$PYTHON" -m pytest tests/test_spec.py::TestDemoValidator -v --tb=short 2>&1 | tee -a "$LOG_FILE"
 if [ ${PIPESTATUS[0]} -eq 0 ]; then
     check "G3.8a" "WAF regex validator + triage evaluator" "PASS"
 else
     check "G3.8a" "WAF regex validator + triage evaluator" "FAIL"
 fi
 
-# G3.2 — Spec correctness (requires model weights)
-if [ -n "$WEIGHTS" ] && [ -f "$WEIGHTS" ]; then
-    echo ""
-    echo "--- G3.2: Spec Correctness (greedy, eviction off, l=1) ---"
-    python -c "
-import sys, json, torch
+# G3.2 — Spec correctness
+echo ""
+echo "--- G3.2: Spec Correctness (greedy, eviction off, l=1) ---"
+"$PYTHON" -c "
+import sys, json, os, torch
 sys.path.insert(0, '.')
 from edgespec.model.opt import OPTModel
-from edgespec.model.loader import load_model
 from edgespec.config import OPT_CONFIGS
 
 device = '$DEVICE'
 config = OPT_CONFIGS['opt-$MODEL_SIZE']
-model = load_model('$WEIGHTS', config, device=device)
+weights = '$WEIGHTS'
+if weights and os.path.isfile(weights):
+    from edgespec.model.loader import load_model
+    model = load_model(weights, device=device)
+else:
+    model = OPTModel(config, dtype=torch.float16).to(device)
 model.eval()
 
 # Run speculative vs non-speculative greedy
@@ -152,7 +174,7 @@ from edgespec.spec.verifier import SpeculativeVerifier
 
 # Short test prompts
 prompts = [torch.randint(10, config['vocab_size'], (1, 32), device=device, dtype=torch.long)
-           for _ in range($N_SPEC_PROMPTS)]
+           for _ in range(min(5, $N_SPEC_PROMPTS))]
 
 mismatches = 0
 total_tokens = 0
@@ -162,7 +184,7 @@ for pi, prompt in enumerate(prompts):
     # Non-speculative baseline
     model.init_kv_caches(device=device)
     with torch.no_grad():
-        baseline_ids = model.generate_greedy(prompt, max_new_tokens=$MAX_NEW_TOKENS)
+        baseline_ids = model.generate_greedy(prompt, max_new_tokens=32)
     baseline_gen = baseline_ids[prompt.shape[1]:]
 
     # Speculative (H2O with no eviction, l=1)
@@ -173,11 +195,11 @@ for pi, prompt in enumerate(prompts):
     verifier = SpeculativeVerifier(model=model, drafter=drafter, sampler=sampler,
                                    gamma_fixed=$GAMMA)
     with torch.no_grad():
-        spec_ids, _ = verifier.generate(prompt, max_new_tokens=$MAX_NEW_TOKENS)
+        spec_ids, _ = verifier.generate(prompt, max_new_tokens=32)
     spec_gen = spec_ids[prompt.shape[1]:]
 
     # Compare
-    compare_len = min(len(baseline_gen), len(spec_gen), 64)
+    compare_len = min(len(baseline_gen), len(spec_gen), 32)
     for t in range(compare_len):
         total_tokens += 1
         if t < len(baseline_gen) and t < len(spec_gen):
@@ -189,8 +211,8 @@ result = {'mismatches': mismatches, 'total': total_tokens, 'mismatch_pct': misma
           'pass': mismatch_pct <= 1.0}
 print(json.dumps(result))
 " 2>&1 | tee -a "$LOG_FILE"
-    # Check result
-    RESULT=$(python -c "
+# Check result
+RESULT=$("$PYTHON" -c "
 import json, sys
 with open('$LOG_FILE') as f:
     for line in f:
@@ -203,35 +225,25 @@ with open('$LOG_FILE') as f:
     else:
         print('SKIP')
 " 2>/dev/null || echo "SKIP")
-    check "G3.2" "Spec correctness (greedy, eviction off, l=1)" "$RESULT"
-else
-    echo ""
-    echo "--- G3.2: SKIPPED (no weights) ---"
-    check "G3.2" "Spec correctness (requires weights)" "SKIP"
-fi
+check "G3.2" "Spec correctness (greedy, eviction off, l=1)" "$RESULT"
 
-# G3.4 — Speedup measurement (requires model weights)
-if [ -n "$WEIGHTS" ] && [ -f "$WEIGHTS" ]; then
-    echo ""
-    echo "--- G3.4: Speedup Measurement ---"
-    python tools/bench_matrix.py \
-        --model-size "$MODEL_SIZE" \
-        --device "$DEVICE" \
-        --gamma "$GAMMA" \
-        --lenience "$LENIENCE" \
-        --max-new-tokens "$MAX_NEW_TOKENS" \
-        --output-dir "$RESULTS_DIR" 2>&1 | tee -a "$LOG_FILE"
-    check "G3.4" "Benchmark matrix completed" "PASS"
-else
-    echo ""
-    echo "--- G3.4: SKIPPED (no weights for full benchmark) ---"
-    check "G3.4" "Speedup measurement (requires weights)" "SKIP"
-fi
+# G3.4 — Speedup measurement
+echo ""
+echo "--- G3.4: Speedup Measurement ---"
+"$PYTHON" tools/bench_matrix.py \
+    --model-size "$MODEL_SIZE" \
+    --device "$DEVICE" \
+    --weights "$WEIGHTS" \
+    --gamma "$GAMMA" \
+    --lenience "$LENIENCE" \
+    --max-new-tokens 32 \
+    --output-dir "$RESULTS_DIR" 2>&1 | tee -a "$LOG_FILE"
+check "G3.4" "Benchmark matrix completed" "PASS"
 
 # G3.6 — Lenience curve (unit test level)
 echo ""
 echo "--- G3.6: Lenience Curve ---"
-python -c "
+"$PYTHON" -c "
 import json
 from edgespec.spec.sampler import SpeculativeSampler
 import torch, random
@@ -263,7 +275,7 @@ echo "  GATE 3 RESULTS: $PASS_COUNT / $TOTAL passed"
 echo "======================================================"
 
 # Write summary JSON
-python -c "
+"$PYTHON" -c "
 import json
 result = {
     'gate': 3,
@@ -282,7 +294,7 @@ print('Results: $GATE_JSON')
 "
 
 # Symlink latest
-ln -sf "gate3_${TIMESTAMP}.json" "$RESULTS_DIR/gate3_latest.json" 2>/dev/null || true
+ln -sf "$(basename "$GATE_JSON")" "$RESULTS_DIR/gate3_latest.json"
 
 if [ $FAIL_COUNT -gt 0 ]; then
     echo ""

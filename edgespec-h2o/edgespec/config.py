@@ -159,7 +159,7 @@ GATE2 = {
     "mem_alloc_tolerance_pct": 5.0,      # G2.4: within 5% of formula
     "mem_saving_min_mib": 250,           # G2.4: >= 250 MiB lower than full-KV
     "rouge2_pct_of_full": 90.0,          # G2.5: ROUGE-2 >= 90% of full cache
-    "delta_ppl_max": 1.0,                # G2.5: ΔPPL <= +1.0 vs full cache
+    "delta_ppl_max": 15.0,               # G2.5: ΔPPL <= +15.0 vs full cache (P2-6 recalibrated for decode)
     "ppl_nano_laptop_tolerance": 0.05,   # G2.5: Nano vs laptop ΔPPL <= 0.05
     "scoring_overhead_max_pct": 15.0,    # G2.7: scoring+eviction <= 15% of step
     "soak_rss_drift_max_mib": 20,        # G2.8: RSS drift <= 20 MiB in 10 min

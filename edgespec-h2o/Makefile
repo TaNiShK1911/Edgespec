@@ -107,11 +107,13 @@ logs:
 eval-ppl:
 	python tools/eval_ppl.py --model facebook/opt-125m
 
+PYTHON ?= python3
+
 # Lint (Python 3.6 compile check)
 lint:
-	find edgespec/ -name '*.py' | xargs python -m py_compile
-	find tools/ -name '*.py' | xargs python -m py_compile
-	find tests/ -name '*.py' | xargs python -m py_compile
+	find edgespec/ -name '*.py' | xargs $(PYTHON) -m py_compile
+	find tools/ -name '*.py' | xargs $(PYTHON) -m py_compile
+	find tests/ -name '*.py' | xargs $(PYTHON) -m py_compile
 
 # Nano setup
 nano-setup:

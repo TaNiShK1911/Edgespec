@@ -212,7 +212,7 @@ class OPTDecoderLayer(nn.Module):
         self.final_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
         self.mlp = OPTMLP(d_model, d_ffn, dtype=dtype)
 
-    def __setattr__(self, name: str, value):
+    def __setattr__(self, name, value):
         if name in ("fc1", "fc2") and hasattr(self, "mlp"):
             setattr(self.mlp, name, value)
             return
@@ -362,6 +362,9 @@ class OPTModel(nn.Module):
         if self.kv_caches is not None:
             for cache in self.kv_caches:
                 cache.reset()
+        for m in self.modules():
+            if hasattr(m, '_cached_weight'):
+                m._cached_weight = None
 
     def forward_block(self, token_ids, start_pos=None, return_attn_probs=False):
         """Forward pass for k >= 1 new tokens.

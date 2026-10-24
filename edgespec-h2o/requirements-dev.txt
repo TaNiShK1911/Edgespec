@@ -1,0 +1,9 @@
+# EdgeSpec-H2O — Laptop / dev requirements
+torch>=1.10.0
+numpy>=1.19.5
+regex>=2021.4.4
+tqdm>=4.60.0
+transformers>=4.25.0
+datasets>=2.0.0
+pytest>=7.0.0
+rouge-score>=0.1.2

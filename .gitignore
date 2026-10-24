@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Large weights and binary artifacts (keep directories via .gitkeep)
+edgespec-h2o/data/weights/*.pt
+edgespec-h2o/data/weights/*.bin
+edgespec-h2o/data/weights/*.safetensors
+edgespec-h2o/data/golden/*.pt
+edgespec-h2o/data/golden/*.bin
+
+# Logs and transient run outputs
+*.swp
+*.swo

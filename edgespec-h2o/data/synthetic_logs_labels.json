@@ -1,0 +1,374 @@
+{
+  "banner": "*** SYNTHETIC DATA \u2014 NOT FROM REAL TRAFFIC ***",
+  "total_entries": 485,
+  "n_attacks": 60,
+  "attack_types": {
+    "credential_stuffing": 31,
+    "scanner": 11,
+    "path_traversal": 10,
+    "xss": 5,
+    "sqli": 3
+  },
+  "labels": [
+    {
+      "line": 1,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 2,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 3,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 4,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 5,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 6,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/config.php"
+    },
+    {
+      "line": 8,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 9,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 10,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 11,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 12,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/wp-login.php"
+    },
+    {
+      "line": 13,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 14,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 15,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/backup.sql"
+    },
+    {
+      "line": 16,
+      "attack_type": "path_traversal",
+      "client_ip": "67.89.208.130",
+      "path": "/../../../etc/passwd"
+    },
+    {
+      "line": 17,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 18,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 19,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 20,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 21,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 22,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 23,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 24,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 25,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 26,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 27,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 28,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 30,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 31,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 32,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 33,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 34,
+      "attack_type": "credential_stuffing",
+      "client_ip": "158.156.78.145",
+      "path": "/login"
+    },
+    {
+      "line": 35,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/admin"
+    },
+    {
+      "line": 36,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/wp-admin"
+    },
+    {
+      "line": 37,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 39,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 41,
+      "attack_type": "credential_stuffing",
+      "client_ip": "19.27.91.204",
+      "path": "/login"
+    },
+    {
+      "line": 42,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/.git/HEAD"
+    },
+    {
+      "line": 45,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/.env"
+    },
+    {
+      "line": 48,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/xmlrpc.php"
+    },
+    {
+      "line": 49,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/server-status"
+    },
+    {
+      "line": 50,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/db.sqlite"
+    },
+    {
+      "line": 54,
+      "attack_type": "scanner",
+      "client_ip": "146.89.192.168",
+      "path": "/phpmyadmin"
+    },
+    {
+      "line": 118,
+      "attack_type": "xss",
+      "client_ip": "123.119.42.73",
+      "path": "/search?q='\"><script>alert(1)</script>"
+    },
+    {
+      "line": 166,
+      "attack_type": "path_traversal",
+      "client_ip": "138.128.226.248",
+      "path": "/%2e%2e/%2e%2e/etc/passwd"
+    },
+    {
+      "line": 175,
+      "attack_type": "sqli",
+      "client_ip": "172.202.207.151",
+      "path": "/api/v1/users?id=' OR 1=1#"
+    },
+    {
+      "line": 221,
+      "attack_type": "xss",
+      "client_ip": "180.134.127.74",
+      "path": "/search?q=<script>alert('XSS')</script>"
+    },
+    {
+      "line": 242,
+      "attack_type": "path_traversal",
+      "client_ip": "189.70.60.192",
+      "path": "/..%2F..%2F..%2Fetc/passwd"
+    },
+    {
+      "line": 246,
+      "attack_type": "path_traversal",
+      "client_ip": "202.173.26.42",
+      "path": "/%2e%2e/%2e%2e/etc/passwd"
+    },
+    {
+      "line": 259,
+      "attack_type": "path_traversal",
+      "client_ip": "23.32.134.57",
+      "path": "/....//....//....//etc/shadow"
+    },
+    {
+      "line": 273,
+      "attack_type": "path_traversal",
+      "client_ip": "151.14.246.30",
+      "path": "/....//....//....//etc/shadow"
+    },
+    {
+      "line": 303,
+      "attack_type": "path_traversal",
+      "client_ip": "31.3.192.168",
+      "path": "/..%2F..%2F..%2Fetc/passwd"
+    },
+    {
+      "line": 343,
+      "attack_type": "xss",
+      "client_ip": "59.193.197.34",
+      "path": "/search?q=<img src=x onerror=alert(1)>"
+    },
+    {
+      "line": 348,
+      "attack_type": "sqli",
+      "client_ip": "122.19.60.24",
+      "path": "/login?username=' OR '1'='1'--"
+    },
+    {
+      "line": 369,
+      "attack_type": "xss",
+      "client_ip": "67.216.187.157",
+      "path": "/search?q='\"><script>alert(1)</script>"
+    },
+    {
+      "line": 373,
+      "attack_type": "path_traversal",
+      "client_ip": "134.146.29.243",
+      "path": "/uploads/../../private/keys"
+    },
+    {
+      "line": 427,
+      "attack_type": "path_traversal",
+      "client_ip": "143.247.91.95",
+      "path": "/static/..%252f..%252f..%252fetc/passwd"
+    },
+    {
+      "line": 458,
+      "attack_type": "path_traversal",
+      "client_ip": "144.178.177.247",
+      "path": "/uploads/../../private/keys"
+    },
+    {
+      "line": 470,
+      "attack_type": "sqli",
+      "client_ip": "50.17.118.158",
+      "path": "/api/v1/users?id=' UNION ALL SELECT NULL,NULL,table_name FROM information_schema.tables--"
+    },
+    {
+      "line": 480,
+      "attack_type": "xss",
+      "client_ip": "179.219.117.241",
+      "path": "/search?q=<script>alert('XSS')</script>"
+    }
+  ]
+}

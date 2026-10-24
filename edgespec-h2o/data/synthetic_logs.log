@@ -1,0 +1,486 @@
+# *** SYNTHETIC DATA — NOT FROM REAL TRAFFIC ***
+212.46.155.228 - - [24/Oct/2024:08:55:30 +0000] "HEAD /sitemap.xml HTTP/1.1" 200 43099 "https://example.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+19.27.91.204 - - [24/Oct/2024:08:55:30 +0000] "POST /login HTTP/1.1" 200 132 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=log
+19.27.91.204 - - [24/Oct/2024:08:55:32 +0000] "POST /login HTTP/1.1" 401 393 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=block
+158.156.78.145 - - [24/Oct/2024:08:55:35 +0000] "POST /login HTTP/1.1" 401 171 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=challenge
+158.156.78.145 - - [24/Oct/2024:08:55:35 +0000] "POST /login HTTP/1.1" 403 286 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=block
+19.27.91.204 - - [24/Oct/2024:08:55:39 +0000] "POST /login HTTP/1.1" 401 194 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=challenge
+146.89.192.168 - - [24/Oct/2024:08:55:39 +0000] "GET /config.php HTTP/1.1" 200 658 "-" "Mozilla/5.0 zgrab/0.x" pop=NRT waf=log
+12.6.125.12 - - [24/Oct/2024:08:55:40 +0000] "POST /privacy HTTP/1.1" 200 10035 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+19.27.91.204 - - [24/Oct/2024:08:55:42 +0000] "POST /login HTTP/1.1" 401 192 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=log
+158.156.78.145 - - [24/Oct/2024:08:55:43 +0000] "POST /login HTTP/1.1" 401 382 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=block
+158.156.78.145 - - [24/Oct/2024:08:55:45 +0000] "POST /login HTTP/1.1" 200 450 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=log
+19.27.91.204 - - [24/Oct/2024:08:55:46 +0000] "POST /login HTTP/1.1" 200 136 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=challenge
+146.89.192.168 - - [24/Oct/2024:08:55:46 +0000] "GET /wp-login.php HTTP/1.1" 200 606 "-" "Mozilla/5.0 zgrab/0.x" pop=LHR waf=log
+19.27.91.204 - - [24/Oct/2024:08:55:48 +0000] "POST /login HTTP/1.1" 401 252 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=block
+19.27.91.204 - - [24/Oct/2024:08:55:48 +0000] "POST /login HTTP/1.1" 401 228 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=block
+146.89.192.168 - - [24/Oct/2024:08:55:49 +0000] "GET /backup.sql HTTP/1.1" 404 161 "-" "Mozilla/5.0 zgrab/0.x" pop=SIN waf=log
+67.89.208.130 - - [24/Oct/2024:08:55:49 +0000] "GET /../../../etc/passwd HTTP/1.1" 200 515 "-" "sqlmap/1.7" pop=SIN waf=block
+19.27.91.204 - - [24/Oct/2024:08:55:50 +0000] "POST /login HTTP/1.1" 401 299 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=block
+158.156.78.145 - - [24/Oct/2024:08:55:50 +0000] "POST /login HTTP/1.1" 401 213 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=block
+158.156.78.145 - - [24/Oct/2024:08:55:51 +0000] "POST /login HTTP/1.1" 403 336 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SFO waf=challenge
+19.27.91.204 - - [24/Oct/2024:08:55:53 +0000] "POST /login HTTP/1.1" 401 383 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=log
+19.27.91.204 - - [24/Oct/2024:08:55:54 +0000] "POST /login HTTP/1.1" 403 438 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=log
+19.27.91.204 - - [24/Oct/2024:08:55:56 +0000] "POST /login HTTP/1.1" 403 330 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=challenge
+158.156.78.145 - - [24/Oct/2024:08:55:57 +0000] "POST /login HTTP/1.1" 401 284 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=block
+158.156.78.145 - - [24/Oct/2024:08:56:00 +0000] "POST /login HTTP/1.1" 401 287 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=block
+158.156.78.145 - - [24/Oct/2024:08:56:01 +0000] "POST /login HTTP/1.1" 200 155 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=block
+19.27.91.204 - - [24/Oct/2024:08:56:04 +0000] "POST /login HTTP/1.1" 401 169 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=block
+19.27.91.204 - - [24/Oct/2024:08:56:05 +0000] "POST /login HTTP/1.1" 401 256 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=block
+158.156.78.145 - - [24/Oct/2024:08:56:06 +0000] "POST /login HTTP/1.1" 401 261 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=log
+56.233.191.16 - - [24/Oct/2024:08:56:07 +0000] "HEAD /register HTTP/1.1" 304 40604 "https://google.com" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+19.27.91.204 - - [24/Oct/2024:08:56:07 +0000] "POST /login HTTP/1.1" 403 269 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=block
+158.156.78.145 - - [24/Oct/2024:08:56:10 +0000] "POST /login HTTP/1.1" 401 397 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=block
+19.27.91.204 - - [24/Oct/2024:08:56:14 +0000] "POST /login HTTP/1.1" 401 283 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=challenge
+158.156.78.145 - - [24/Oct/2024:08:56:16 +0000] "POST /login HTTP/1.1" 401 472 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=block
+158.156.78.145 - - [24/Oct/2024:08:56:16 +0000] "POST /login HTTP/1.1" 401 168 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=block
+146.89.192.168 - - [24/Oct/2024:08:56:16 +0000] "GET /admin HTTP/1.1" 200 669 "-" "Mozilla/5.0 zgrab/0.x" pop=SFO waf=block
+146.89.192.168 - - [24/Oct/2024:08:56:18 +0000] "GET /wp-admin HTTP/1.1" 404 528 "-" "Mozilla/5.0 zgrab/0.x" pop=SYD waf=block
+19.27.91.204 - - [24/Oct/2024:08:56:20 +0000] "POST /login HTTP/1.1" 401 410 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=challenge
+191.128.103.159 - - [24/Oct/2024:08:56:23 +0000] "POST /search?q=phone HTTP/1.1" 200 41735 "https://google.com" "curl/8.4.0" pop=JNB waf=pass
+19.27.91.204 - - [24/Oct/2024:08:56:24 +0000] "POST /login HTTP/1.1" 200 336 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=log
+189.172.151.146 - - [24/Oct/2024:08:56:27 +0000] "GET /api/v1/metrics HTTP/1.1" 301 42059 "https://example.com" "python-requests/2.31.0" pop=JNB waf=pass
+19.27.91.204 - - [24/Oct/2024:08:56:27 +0000] "POST /login HTTP/1.1" 401 208 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=block
+146.89.192.168 - - [24/Oct/2024:08:56:31 +0000] "GET /.git/HEAD HTTP/1.1" 403 490 "-" "Mozilla/5.0 zgrab/0.x" pop=FRA waf=log
+45.135.26.33 - - [24/Oct/2024:08:56:34 +0000] "POST /robots.txt HTTP/1.1" 200 49067 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=GRU waf=pass
+2.210.6.5 - - [24/Oct/2024:08:56:34 +0000] "HEAD /settings HTTP/1.1" 200 35310 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+146.89.192.168 - - [24/Oct/2024:08:56:34 +0000] "GET /.env HTTP/1.1" 404 450 "-" "Mozilla/5.0 zgrab/0.x" pop=LHR waf=log
+32.80.225.117 - - [24/Oct/2024:08:56:36 +0000] "GET /static/js/app.js HTTP/1.1" 200 45327 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+151.34.7.68 - - [24/Oct/2024:08:56:38 +0000] "GET /api/v1/products HTTP/1.1" 200 26281 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+146.89.192.168 - - [24/Oct/2024:08:56:50 +0000] "GET /xmlrpc.php HTTP/1.1" 200 40 "-" "Mozilla/5.0 zgrab/0.x" pop=BOM waf=log
+146.89.192.168 - - [24/Oct/2024:08:56:52 +0000] "GET /server-status HTTP/1.1" 403 22 "-" "Mozilla/5.0 zgrab/0.x" pop=FRA waf=log
+146.89.192.168 - - [24/Oct/2024:08:56:54 +0000] "GET /db.sqlite HTTP/1.1" 404 424 "-" "Mozilla/5.0 zgrab/0.x" pop=SIN waf=log
+84.87.235.213 - - [24/Oct/2024:08:56:55 +0000] "GET /api/v1/orders HTTP/1.1" 200 7137 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=BOM waf=pass
+13.170.124.254 - - [24/Oct/2024:08:56:57 +0000] "GET /search?q=laptop HTTP/1.1" 301 13648 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+213.202.140.3 - - [24/Oct/2024:08:56:59 +0000] "HEAD /search?q=tablet HTTP/1.1" 304 49002 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+146.89.192.168 - - [24/Oct/2024:08:57:14 +0000] "GET /phpmyadmin HTTP/1.1" 404 498 "-" "Mozilla/5.0 zgrab/0.x" pop=GRU waf=log
+24.117.10.196 - - [24/Oct/2024:08:57:15 +0000] "GET /login HTTP/1.1" 200 49762 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+189.95.255.133 - - [24/Oct/2024:08:57:16 +0000] "POST /cdn/assets/style.min.css HTTP/1.1" 301 7917 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+187.236.107.113 - - [24/Oct/2024:08:57:20 +0000] "GET /search?q=phone HTTP/1.1" 304 4732 "https://google.com" "python-requests/2.31.0" pop=GRU waf=pass
+47.139.158.236 - - [24/Oct/2024:08:57:28 +0000] "GET /privacy HTTP/1.1" 200 12088 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+221.169.36.132 - - [24/Oct/2024:08:57:38 +0000] "GET /index.html HTTP/1.1" 304 32012 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+8.47.111.60 - - [24/Oct/2024:08:57:40 +0000] "HEAD /logout HTTP/1.1" 200 36981 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+24.28.119.155 - - [24/Oct/2024:08:58:05 +0000] "GET /api/v1/users HTTP/1.1" 301 31525 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=BOM waf=pass
+74.241.71.195 - - [24/Oct/2024:08:58:06 +0000] "POST /static/img/logo.png HTTP/1.1" 301 544 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+79.186.20.231 - - [24/Oct/2024:08:58:21 +0000] "GET /api/v2/users/{id} HTTP/1.1" 304 16553 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+106.186.121.249 - - [24/Oct/2024:08:58:28 +0000] "POST /logout HTTP/1.1" 200 49508 "-" "PostmanRuntime/7.35.0" pop=JNB waf=pass
+10.155.252.30 - - [24/Oct/2024:08:58:35 +0000] "GET /api/v2/products/{id} HTTP/1.1" 301 9090 "https://example.com" "python-requests/2.31.0" pop=SIN waf=pass
+103.26.99.93 - - [24/Oct/2024:08:58:35 +0000] "HEAD /about HTTP/1.1" 200 25519 "https://google.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+165.135.107.197 - - [24/Oct/2024:08:58:36 +0000] "HEAD /static/js/app.js HTTP/1.1" 301 42076 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=JNB waf=pass
+63.243.37.117 - - [24/Oct/2024:08:58:39 +0000] "POST /cdn/assets/bundle.min.js HTTP/1.1" 304 37927 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+163.63.230.118 - - [24/Oct/2024:08:58:40 +0000] "HEAD /robots.txt HTTP/1.1" 200 32891 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=pass
+42.109.113.166 - - [24/Oct/2024:08:58:53 +0000] "GET /forgot-password HTTP/1.1" 200 17834 "https://google.com" "python-requests/2.31.0" pop=IAD waf=pass
+130.114.193.104 - - [24/Oct/2024:08:58:56 +0000] "GET /api/v1/orders HTTP/1.1" 200 29310 "-" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+80.89.61.4 - - [24/Oct/2024:08:59:15 +0000] "GET /dashboard HTTP/1.1" 200 10936 "https://example.com" "PostmanRuntime/7.35.0" pop=JNB waf=pass
+128.85.188.41 - - [24/Oct/2024:08:59:17 +0000] "GET /profile HTTP/1.1" 200 37811 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+164.4.87.22 - - [24/Oct/2024:08:59:19 +0000] "POST /search?q=tablet HTTP/1.1" 200 42464 "https://google.com" "curl/8.4.0" pop=SFO waf=pass
+71.64.67.64 - - [24/Oct/2024:08:59:32 +0000] "GET /dashboard HTTP/1.1" 200 16423 "https://example.com" "python-requests/2.31.0" pop=LHR waf=pass
+43.157.147.113 - - [24/Oct/2024:08:59:34 +0000] "GET /static/img/logo.png HTTP/1.1" 304 20128 "https://example.com" "python-requests/2.31.0" pop=JNB waf=pass
+151.168.62.106 - - [24/Oct/2024:08:59:35 +0000] "GET /search?q=tablet HTTP/1.1" 304 49370 "https://google.com" "python-requests/2.31.0" pop=IAD waf=pass
+102.141.97.248 - - [24/Oct/2024:08:59:38 +0000] "GET /search?q=tablet HTTP/1.1" 200 6207 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=BOM waf=pass
+123.205.218.176 - - [24/Oct/2024:08:59:39 +0000] "GET /favicon.ico HTTP/1.1" 304 29269 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+87.10.117.151 - - [24/Oct/2024:08:59:52 +0000] "GET /api/v1/users HTTP/1.1" 200 46589 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+135.10.199.224 - - [24/Oct/2024:09:00:07 +0000] "POST /api/v1/products HTTP/1.1" 304 25554 "https://example.com" "curl/8.4.0" pop=IAD waf=pass
+130.174.6.218 - - [24/Oct/2024:09:00:12 +0000] "POST /search?q=phone HTTP/1.1" 200 7116 "https://example.com" "python-requests/2.31.0" pop=GRU waf=pass
+37.15.46.192 - - [24/Oct/2024:09:00:15 +0000] "HEAD /api/v2/users/{id} HTTP/1.1" 200 27714 "https://example.com" "PostmanRuntime/7.35.0" pop=LHR waf=pass
+205.17.150.6 - - [24/Oct/2024:09:00:31 +0000] "GET /index.html HTTP/1.1" 200 5062 "-" "curl/8.4.0" pop=SYD waf=pass
+152.31.222.170 - - [24/Oct/2024:09:00:36 +0000] "GET /api/v2/products/{id} HTTP/1.1" 200 17304 "https://example.com" "curl/8.4.0" pop=SIN waf=pass
+77.83.123.146 - - [24/Oct/2024:09:00:45 +0000] "POST /forgot-password HTTP/1.1" 301 21940 "https://google.com" "python-requests/2.31.0" pop=LHR waf=pass
+221.160.219.147 - - [24/Oct/2024:09:00:48 +0000] "POST /dashboard HTTP/1.1" 304 27573 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SYD waf=pass
+145.57.31.213 - - [24/Oct/2024:09:00:49 +0000] "HEAD /cdn/assets/bundle.min.js HTTP/1.1" 301 13448 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+131.104.79.138 - - [24/Oct/2024:09:00:53 +0000] "GET /static/css/main.css HTTP/1.1" 301 41769 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+102.17.75.31 - - [24/Oct/2024:09:00:53 +0000] "POST /api/v1/metrics HTTP/1.1" 200 14086 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+218.95.35.153 - - [24/Oct/2024:09:00:58 +0000] "GET /forgot-password HTTP/1.1" 200 26661 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+96.114.14.82 - - [24/Oct/2024:09:01:04 +0000] "GET /search?q=phone HTTP/1.1" 304 42795 "-" "curl/8.4.0" pop=LHR waf=pass
+173.68.160.31 - - [24/Oct/2024:09:01:17 +0000] "GET /about HTTP/1.1" 200 12196 "https://google.com" "curl/8.4.0" pop=LHR waf=pass
+62.208.250.143 - - [24/Oct/2024:09:01:20 +0000] "GET /dashboard HTTP/1.1" 200 42529 "https://example.com" "PostmanRuntime/7.35.0" pop=IAD waf=pass
+100.203.166.220 - - [24/Oct/2024:09:01:26 +0000] "GET /robots.txt HTTP/1.1" 200 1010 "-" "python-requests/2.31.0" pop=SYD waf=pass
+208.163.177.182 - - [24/Oct/2024:09:01:29 +0000] "GET /sitemap.xml HTTP/1.1" 301 19229 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=LHR waf=pass
+91.47.166.222 - - [24/Oct/2024:09:01:37 +0000] "POST /api/v1/users HTTP/1.1" 200 27319 "-" "python-requests/2.31.0" pop=JNB waf=pass
+194.24.56.40 - - [24/Oct/2024:09:01:42 +0000] "GET /search?q=laptop HTTP/1.1" 304 27866 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+138.97.26.69 - - [24/Oct/2024:09:01:48 +0000] "POST /forgot-password HTTP/1.1" 301 39713 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+76.113.207.178 - - [24/Oct/2024:09:01:51 +0000] "GET /about HTTP/1.1" 304 38312 "https://example.com" "curl/8.4.0" pop=JNB waf=pass
+166.216.185.5 - - [24/Oct/2024:09:01:52 +0000] "GET /about HTTP/1.1" 200 14237 "https://example.com" "curl/8.4.0" pop=FRA waf=pass
+129.86.78.44 - - [24/Oct/2024:09:01:52 +0000] "HEAD /settings HTTP/1.1" 301 22326 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+143.197.145.65 - - [24/Oct/2024:09:01:57 +0000] "HEAD /search?q=tablet HTTP/1.1" 200 22047 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=pass
+13.148.196.222 - - [24/Oct/2024:09:02:06 +0000] "HEAD /static/js/app.js HTTP/1.1" 200 10666 "https://google.com" "curl/8.4.0" pop=SIN waf=pass
+135.233.7.185 - - [24/Oct/2024:09:02:18 +0000] "GET /static/js/app.js HTTP/1.1" 304 10316 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+179.154.61.204 - - [24/Oct/2024:09:02:27 +0000] "HEAD /search?q=laptop HTTP/1.1" 200 22954 "https://google.com" "python-requests/2.31.0" pop=SIN waf=pass
+3.50.132.57 - - [24/Oct/2024:09:02:43 +0000] "HEAD /settings HTTP/1.1" 301 36768 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+149.13.159.148 - - [24/Oct/2024:09:02:52 +0000] "POST /static/css/main.css HTTP/1.1" 304 13197 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+73.249.157.12 - - [24/Oct/2024:09:03:04 +0000] "GET /static/css/main.css HTTP/1.1" 301 3790 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=NRT waf=pass
+76.222.80.117 - - [24/Oct/2024:09:03:06 +0000] "GET /settings HTTP/1.1" 304 17461 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+97.20.219.72 - - [24/Oct/2024:09:03:38 +0000] "HEAD /index.html HTTP/1.1" 200 10746 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+223.195.152.106 - - [24/Oct/2024:09:03:40 +0000] "GET /search?q=tablet HTTP/1.1" 200 9202 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+46.0.200.218 - - [24/Oct/2024:09:04:11 +0000] "HEAD /api/v1/products HTTP/1.1" 200 39678 "https://google.com" "curl/8.4.0" pop=FRA waf=pass
+158.222.219.104 - - [24/Oct/2024:09:04:20 +0000] "POST /favicon.ico HTTP/1.1" 200 505 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+51.205.190.176 - - [24/Oct/2024:09:04:25 +0000] "GET /login HTTP/1.1" 301 17162 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SFO waf=pass
+152.115.227.3 - - [24/Oct/2024:09:04:33 +0000] "GET /dashboard HTTP/1.1" 200 8103 "https://google.com" "python-requests/2.31.0" pop=LHR waf=pass
+168.178.60.46 - - [24/Oct/2024:09:04:34 +0000] "HEAD /static/css/main.css HTTP/1.1" 301 8545 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+123.119.42.73 - - [24/Oct/2024:09:04:38 +0000] "GET /search?q='"><script>alert(1)</script> HTTP/1.1" 400 1155 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=block
+163.155.123.65 - - [24/Oct/2024:09:05:00 +0000] "GET /dashboard HTTP/1.1" 200 24906 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=BOM waf=pass
+201.105.105.207 - - [24/Oct/2024:09:05:00 +0000] "GET /login HTTP/1.1" 200 35083 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+60.236.130.118 - - [24/Oct/2024:09:05:16 +0000] "GET /forgot-password HTTP/1.1" 200 30690 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+14.28.102.69 - - [24/Oct/2024:09:05:25 +0000] "GET /about HTTP/1.1" 304 16620 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+63.210.92.44 - - [24/Oct/2024:09:05:26 +0000] "GET /api/v1/orders HTTP/1.1" 301 25270 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=BOM waf=pass
+66.101.88.155 - - [24/Oct/2024:09:05:29 +0000] "GET /profile HTTP/1.1" 304 5138 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=GRU waf=pass
+24.127.182.102 - - [24/Oct/2024:09:05:37 +0000] "HEAD /api/v1/products HTTP/1.1" 304 19784 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=IAD waf=pass
+156.71.167.239 - - [24/Oct/2024:09:05:40 +0000] "HEAD /contact HTTP/1.1" 200 25952 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+38.51.54.145 - - [24/Oct/2024:09:05:42 +0000] "GET /search?q=laptop HTTP/1.1" 200 35303 "https://example.com" "curl/8.4.0" pop=NRT waf=pass
+98.78.199.82 - - [24/Oct/2024:09:06:01 +0000] "GET /api/v1/health HTTP/1.1" 200 540 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+56.172.52.24 - - [24/Oct/2024:09:06:06 +0000] "POST /api/v1/health HTTP/1.1" 200 22741 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+19.226.176.253 - - [24/Oct/2024:09:06:17 +0000] "HEAD /about HTTP/1.1" 304 28007 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+71.47.184.65 - - [24/Oct/2024:09:06:21 +0000] "GET /privacy HTTP/1.1" 304 42727 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+26.126.123.69 - - [24/Oct/2024:09:06:23 +0000] "HEAD /search?q=phone HTTP/1.1" 304 3864 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+188.38.47.87 - - [24/Oct/2024:09:06:29 +0000] "HEAD /logout HTTP/1.1" 200 46370 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=pass
+105.248.246.55 - - [24/Oct/2024:09:06:51 +0000] "POST /cdn/assets/bundle.min.js HTTP/1.1" 200 10989 "-" "python-requests/2.31.0" pop=SYD waf=pass
+112.141.215.77 - - [24/Oct/2024:09:06:54 +0000] "POST /search?q=laptop HTTP/1.1" 200 23866 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+83.149.148.147 - - [24/Oct/2024:09:06:59 +0000] "GET /search?q=tablet HTTP/1.1" 301 44718 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+135.194.75.211 - - [24/Oct/2024:09:07:08 +0000] "GET /api/v1/products HTTP/1.1" 301 46109 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=pass
+182.182.114.171 - - [24/Oct/2024:09:07:23 +0000] "HEAD /search?q=phone HTTP/1.1" 200 24997 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+107.90.18.215 - - [24/Oct/2024:09:07:27 +0000] "POST /search?q=laptop HTTP/1.1" 200 12410 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=IAD waf=pass
+7.163.112.8 - - [24/Oct/2024:09:07:46 +0000] "GET /api/v1/products HTTP/1.1" 200 34896 "https://google.com" "curl/8.4.0" pop=FRA waf=pass
+13.133.194.84 - - [24/Oct/2024:09:07:54 +0000] "GET /static/img/logo.png HTTP/1.1" 200 22318 "https://example.com" "python-requests/2.31.0" pop=SYD waf=pass
+14.129.244.30 - - [24/Oct/2024:09:08:05 +0000] "GET /static/css/main.css HTTP/1.1" 200 5055 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=pass
+196.81.255.132 - - [24/Oct/2024:09:08:27 +0000] "POST /favicon.ico HTTP/1.1" 200 32795 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+209.196.253.105 - - [24/Oct/2024:09:08:49 +0000] "POST /static/js/app.js HTTP/1.1" 304 29288 "-" "PostmanRuntime/7.35.0" pop=SFO waf=pass
+166.227.65.24 - - [24/Oct/2024:09:08:59 +0000] "GET /api/v1/health HTTP/1.1" 200 30411 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=BOM waf=pass
+99.247.54.61 - - [24/Oct/2024:09:09:05 +0000] "POST /login HTTP/1.1" 200 37870 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+207.66.174.184 - - [24/Oct/2024:09:09:15 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 200 4103 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=BOM waf=pass
+193.16.183.209 - - [24/Oct/2024:09:09:25 +0000] "POST /api/v1/health HTTP/1.1" 301 44471 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+197.70.130.75 - - [24/Oct/2024:09:09:55 +0000] "GET /api/v1/health HTTP/1.1" 200 32796 "-" "python-requests/2.31.0" pop=LHR waf=pass
+157.146.251.52 - - [24/Oct/2024:09:10:08 +0000] "GET /api/v1/status HTTP/1.1" 200 29825 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=GRU waf=pass
+214.76.216.29 - - [24/Oct/2024:09:10:13 +0000] "GET /api/v2/products/{id} HTTP/1.1" 200 8185 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+15.31.160.15 - - [24/Oct/2024:09:10:21 +0000] "GET /login HTTP/1.1" 200 33154 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+210.230.178.239 - - [24/Oct/2024:09:10:39 +0000] "GET /static/js/app.js HTTP/1.1" 200 26182 "-" "curl/8.4.0" pop=SYD waf=pass
+215.137.31.39 - - [24/Oct/2024:09:10:56 +0000] "GET /api/v1/orders HTTP/1.1" 304 22730 "https://google.com" "python-requests/2.31.0" pop=FRA waf=pass
+178.176.159.34 - - [24/Oct/2024:09:10:56 +0000] "GET /static/css/main.css HTTP/1.1" 301 38779 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+36.79.39.76 - - [24/Oct/2024:09:10:57 +0000] "GET /robots.txt HTTP/1.1" 301 48607 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SIN waf=pass
+106.173.232.103 - - [24/Oct/2024:09:11:05 +0000] "POST /settings HTTP/1.1" 200 20683 "https://example.com" "python-requests/2.31.0" pop=NRT waf=pass
+115.136.168.78 - - [24/Oct/2024:09:11:34 +0000] "HEAD /settings HTTP/1.1" 301 949 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+68.202.67.172 - - [24/Oct/2024:09:11:47 +0000] "GET /static/img/logo.png HTTP/1.1" 200 49474 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=GRU waf=pass
+80.240.99.95 - - [24/Oct/2024:09:11:49 +0000] "HEAD /static/img/logo.png HTTP/1.1" 200 18666 "https://google.com" "python-requests/2.31.0" pop=JNB waf=pass
+147.86.194.44 - - [24/Oct/2024:09:12:04 +0000] "GET /index.html HTTP/1.1" 200 17790 "-" "PostmanRuntime/7.35.0" pop=SFO waf=pass
+191.134.219.230 - - [24/Oct/2024:09:12:20 +0000] "HEAD /static/css/main.css HTTP/1.1" 200 14573 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=GRU waf=pass
+142.145.13.218 - - [24/Oct/2024:09:12:26 +0000] "GET /api/v2/users/{id} HTTP/1.1" 301 39975 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+214.41.240.5 - - [24/Oct/2024:09:12:43 +0000] "HEAD /api/v1/products HTTP/1.1" 200 14894 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=pass
+209.181.136.204 - - [24/Oct/2024:09:12:43 +0000] "POST /api/v1/orders HTTP/1.1" 200 26809 "https://google.com" "PostmanRuntime/7.35.0" pop=FRA waf=pass
+138.128.226.248 - - [24/Oct/2024:09:13:05 +0000] "GET /%2e%2e/%2e%2e/etc/passwd HTTP/1.1" 404 788 "-" "PostmanRuntime/7.35.0" pop=SIN waf=log
+170.41.80.62 - - [24/Oct/2024:09:13:33 +0000] "GET /sitemap.xml HTTP/1.1" 200 10458 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+202.101.217.30 - - [24/Oct/2024:09:13:33 +0000] "HEAD /api/v2/products/{id} HTTP/1.1" 304 9964 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+201.232.146.109 - - [24/Oct/2024:09:13:36 +0000] "HEAD /forgot-password HTTP/1.1" 304 32094 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+141.67.147.113 - - [24/Oct/2024:09:13:43 +0000] "POST /api/v1/health HTTP/1.1" 200 41489 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+160.70.214.213 - - [24/Oct/2024:09:13:55 +0000] "GET /robots.txt HTTP/1.1" 304 40681 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SFO waf=pass
+114.217.248.156 - - [24/Oct/2024:09:14:04 +0000] "POST /static/js/app.js HTTP/1.1" 200 14327 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+112.248.14.100 - - [24/Oct/2024:09:14:07 +0000] "GET /forgot-password HTTP/1.1" 304 26697 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=pass
+72.228.76.9 - - [24/Oct/2024:09:14:16 +0000] "HEAD /logout HTTP/1.1" 301 16307 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SYD waf=pass
+172.202.207.151 - - [24/Oct/2024:09:14:20 +0000] "GET /api/v1/users?id=' OR 1=1# HTTP/1.1" 200 662 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=log
+100.209.173.174 - - [24/Oct/2024:09:14:48 +0000] "HEAD /api/v1/products HTTP/1.1" 304 42621 "-" "curl/8.4.0" pop=SIN waf=pass
+217.40.128.51 - - [24/Oct/2024:09:14:53 +0000] "HEAD /index.html HTTP/1.1" 200 41161 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+138.4.55.111 - - [24/Oct/2024:09:15:00 +0000] "GET /cdn/assets/bundle.min.js HTTP/1.1" 200 47877 "https://example.com" "curl/8.4.0" pop=SIN waf=pass
+154.159.180.27 - - [24/Oct/2024:09:15:08 +0000] "HEAD /robots.txt HTTP/1.1" 200 10340 "-" "PostmanRuntime/7.35.0" pop=SFO waf=pass
+165.154.247.63 - - [24/Oct/2024:09:15:16 +0000] "POST /about HTTP/1.1" 200 4982 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+110.0.180.62 - - [24/Oct/2024:09:15:23 +0000] "HEAD /static/js/app.js HTTP/1.1" 200 43740 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+116.68.70.106 - - [24/Oct/2024:09:15:34 +0000] "HEAD /dashboard HTTP/1.1" 304 33773 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+42.20.254.234 - - [24/Oct/2024:09:15:39 +0000] "GET /dashboard HTTP/1.1" 200 21866 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+166.27.122.127 - - [24/Oct/2024:09:15:40 +0000] "POST /api/v1/health HTTP/1.1" 200 32940 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=IAD waf=pass
+59.184.91.78 - - [24/Oct/2024:09:15:43 +0000] "GET /dashboard HTTP/1.1" 301 8495 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=IAD waf=pass
+61.49.25.101 - - [24/Oct/2024:09:15:48 +0000] "HEAD /sitemap.xml HTTP/1.1" 200 10265 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=pass
+146.54.171.73 - - [24/Oct/2024:09:15:52 +0000] "POST /register HTTP/1.1" 301 34561 "-" "PostmanRuntime/7.35.0" pop=JNB waf=pass
+119.217.194.211 - - [24/Oct/2024:09:15:52 +0000] "GET /api/v2/products/{id} HTTP/1.1" 200 22885 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=FRA waf=pass
+170.53.68.68 - - [24/Oct/2024:09:15:56 +0000] "GET /cdn/assets/bundle.min.js HTTP/1.1" 200 48855 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+97.94.242.62 - - [24/Oct/2024:09:15:58 +0000] "GET /about HTTP/1.1" 304 9660 "-" "PostmanRuntime/7.35.0" pop=JNB waf=pass
+174.203.52.2 - - [24/Oct/2024:09:16:07 +0000] "HEAD /forgot-password HTTP/1.1" 200 36995 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+204.13.242.68 - - [24/Oct/2024:09:16:30 +0000] "HEAD /login HTTP/1.1" 200 47477 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+142.7.208.24 - - [24/Oct/2024:09:16:42 +0000] "GET /search?q=phone HTTP/1.1" 200 30441 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=pass
+72.251.50.249 - - [24/Oct/2024:09:16:43 +0000] "GET /api/v1/status HTTP/1.1" 200 48940 "https://example.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+163.29.2.116 - - [24/Oct/2024:09:16:53 +0000] "GET /api/v2/users/{id} HTTP/1.1" 200 37967 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+31.94.98.56 - - [24/Oct/2024:09:17:02 +0000] "POST /index.html HTTP/1.1" 304 38839 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=FRA waf=pass
+116.139.119.20 - - [24/Oct/2024:09:17:12 +0000] "GET /api/v1/status HTTP/1.1" 301 7341 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=pass
+139.41.70.39 - - [24/Oct/2024:09:17:19 +0000] "GET /static/css/main.css HTTP/1.1" 304 10214 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+27.40.167.170 - - [24/Oct/2024:09:17:25 +0000] "GET /about HTTP/1.1" 200 39693 "-" "python-requests/2.31.0" pop=GRU waf=pass
+97.143.201.94 - - [24/Oct/2024:09:17:44 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 301 13294 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+192.212.89.52 - - [24/Oct/2024:09:17:48 +0000] "GET /search?q=laptop HTTP/1.1" 301 24176 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+23.233.4.95 - - [24/Oct/2024:09:17:50 +0000] "GET /about HTTP/1.1" 301 20117 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+23.205.48.48 - - [24/Oct/2024:09:17:53 +0000] "GET /favicon.ico HTTP/1.1" 200 16456 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+59.194.125.128 - - [24/Oct/2024:09:18:01 +0000] "HEAD /register HTTP/1.1" 304 22322 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+184.241.51.175 - - [24/Oct/2024:09:18:02 +0000] "GET /api/v1/users HTTP/1.1" 301 10550 "https://google.com" "python-requests/2.31.0" pop=GRU waf=pass
+83.53.82.85 - - [24/Oct/2024:09:18:15 +0000] "POST /dashboard HTTP/1.1" 200 19088 "https://google.com" "python-requests/2.31.0" pop=IAD waf=pass
+78.165.69.250 - - [24/Oct/2024:09:18:28 +0000] "GET /settings HTTP/1.1" 200 42094 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+141.66.248.202 - - [24/Oct/2024:09:18:33 +0000] "GET /cdn/assets/bundle.min.js HTTP/1.1" 304 3372 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+160.203.41.219 - - [24/Oct/2024:09:18:36 +0000] "GET /search?q=tablet HTTP/1.1" 304 35171 "https://example.com" "python-requests/2.31.0" pop=GRU waf=pass
+140.181.135.157 - - [24/Oct/2024:09:18:52 +0000] "POST /api/v2/users/{id} HTTP/1.1" 200 18484 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+126.183.96.43 - - [24/Oct/2024:09:18:53 +0000] "POST /api/v1/users HTTP/1.1" 200 14901 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=pass
+180.32.30.240 - - [24/Oct/2024:09:19:01 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 200 2279 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=LHR waf=pass
+114.131.245.55 - - [24/Oct/2024:09:19:08 +0000] "GET /search?q=phone HTTP/1.1" 301 17968 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+80.175.233.201 - - [24/Oct/2024:09:19:16 +0000] "GET /robots.txt HTTP/1.1" 200 23026 "-" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+79.116.114.7 - - [24/Oct/2024:09:19:22 +0000] "GET /static/css/main.css HTTP/1.1" 200 18458 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+80.200.66.153 - - [24/Oct/2024:09:19:22 +0000] "GET /about HTTP/1.1" 301 24886 "-" "curl/8.4.0" pop=JNB waf=pass
+217.188.58.196 - - [24/Oct/2024:09:19:24 +0000] "GET /login HTTP/1.1" 200 28322 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=NRT waf=pass
+140.192.51.213 - - [24/Oct/2024:09:19:28 +0000] "POST /search?q=laptop HTTP/1.1" 301 42861 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=GRU waf=pass
+115.21.180.158 - - [24/Oct/2024:09:19:29 +0000] "POST /index.html HTTP/1.1" 304 3959 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+140.173.89.213 - - [24/Oct/2024:09:19:33 +0000] "POST /dashboard HTTP/1.1" 200 41601 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+180.134.127.74 - - [24/Oct/2024:09:19:36 +0000] "GET /search?q=<script>alert('XSS')</script> HTTP/1.1" 200 1734 "-" "curl/8.4.0" pop=SFO waf=block
+109.210.239.222 - - [24/Oct/2024:09:19:41 +0000] "GET /forgot-password HTTP/1.1" 304 42548 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+215.88.90.61 - - [24/Oct/2024:09:19:43 +0000] "HEAD /contact HTTP/1.1" 304 45919 "https://google.com" "curl/8.4.0" pop=IAD waf=pass
+202.34.176.62 - - [24/Oct/2024:09:19:52 +0000] "GET /profile HTTP/1.1" 301 48381 "-" "curl/8.4.0" pop=IAD waf=pass
+82.67.198.221 - - [24/Oct/2024:09:20:09 +0000] "HEAD /static/js/app.js HTTP/1.1" 200 36006 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+132.81.15.37 - - [24/Oct/2024:09:20:18 +0000] "HEAD /forgot-password HTTP/1.1" 200 2480 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=FRA waf=pass
+84.100.234.30 - - [24/Oct/2024:09:20:28 +0000] "GET /forgot-password HTTP/1.1" 200 34784 "https://google.com" "curl/8.4.0" pop=SYD waf=pass
+205.136.42.187 - - [24/Oct/2024:09:20:34 +0000] "POST /api/v1/orders HTTP/1.1" 200 39682 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+73.80.224.214 - - [24/Oct/2024:09:20:43 +0000] "HEAD /dashboard HTTP/1.1" 200 40286 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=JNB waf=pass
+80.166.43.227 - - [24/Oct/2024:09:20:45 +0000] "GET /api/v1/status HTTP/1.1" 200 49642 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+31.26.91.58 - - [24/Oct/2024:09:20:57 +0000] "HEAD /api/v1/products HTTP/1.1" 200 4717 "https://example.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+180.54.23.230 - - [24/Oct/2024:09:21:01 +0000] "GET /favicon.ico HTTP/1.1" 200 47179 "-" "python-requests/2.31.0" pop=NRT waf=pass
+40.242.34.24 - - [24/Oct/2024:09:21:03 +0000] "GET /api/v1/orders HTTP/1.1" 200 6528 "-" "curl/8.4.0" pop=JNB waf=pass
+111.95.194.22 - - [24/Oct/2024:09:21:07 +0000] "HEAD /about HTTP/1.1" 200 46934 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+137.117.181.19 - - [24/Oct/2024:09:21:27 +0000] "POST /search?q=tablet HTTP/1.1" 304 2972 "-" "python-requests/2.31.0" pop=GRU waf=pass
+204.58.197.66 - - [24/Oct/2024:09:21:32 +0000] "HEAD /settings HTTP/1.1" 200 1819 "https://google.com" "curl/8.4.0" pop=JNB waf=pass
+168.248.242.10 - - [24/Oct/2024:09:21:38 +0000] "GET /index.html HTTP/1.1" 200 9627 "-" "python-requests/2.31.0" pop=SYD waf=pass
+170.77.253.247 - - [24/Oct/2024:09:21:51 +0000] "GET /api/v1/status HTTP/1.1" 301 38878 "-" "curl/8.4.0" pop=GRU waf=pass
+48.189.195.95 - - [24/Oct/2024:09:21:57 +0000] "GET /static/img/logo.png HTTP/1.1" 200 17455 "https://example.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+61.147.24.238 - - [24/Oct/2024:09:22:02 +0000] "POST /static/css/main.css HTTP/1.1" 200 45101 "https://google.com" "curl/8.4.0" pop=IAD waf=pass
+119.77.176.7 - - [24/Oct/2024:09:22:12 +0000] "POST /api/v1/health HTTP/1.1" 200 27461 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=pass
+189.70.60.192 - - [24/Oct/2024:09:22:40 +0000] "GET /..%2F..%2F..%2Fetc/passwd HTTP/1.1" 404 801 "-" "curl/8.4.0" pop=SFO waf=block
+209.242.129.10 - - [24/Oct/2024:09:22:41 +0000] "GET /about HTTP/1.1" 200 3332 "https://example.com" "curl/8.4.0" pop=SFO waf=pass
+34.189.54.82 - - [24/Oct/2024:09:22:43 +0000] "GET /static/img/logo.png HTTP/1.1" 200 17729 "-" "PostmanRuntime/7.35.0" pop=LHR waf=pass
+135.40.202.223 - - [24/Oct/2024:09:22:50 +0000] "GET /settings HTTP/1.1" 200 14720 "-" "curl/8.4.0" pop=SFO waf=pass
+202.173.26.42 - - [24/Oct/2024:09:22:50 +0000] "GET /%2e%2e/%2e%2e/etc/passwd HTTP/1.1" 200 823 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=log
+219.231.127.25 - - [24/Oct/2024:09:23:06 +0000] "POST /api/v1/health HTTP/1.1" 200 8159 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+85.238.212.16 - - [24/Oct/2024:09:23:19 +0000] "GET /search?q=phone HTTP/1.1" 200 25724 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+107.68.198.63 - - [24/Oct/2024:09:23:40 +0000] "GET /api/v2/users/{id} HTTP/1.1" 200 42582 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+124.237.104.88 - - [24/Oct/2024:09:23:52 +0000] "HEAD /api/v1/status HTTP/1.1" 200 47278 "https://google.com" "curl/8.4.0" pop=SIN waf=pass
+152.247.224.47 - - [24/Oct/2024:09:23:54 +0000] "HEAD /static/css/main.css HTTP/1.1" 200 40265 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=pass
+42.102.70.224 - - [24/Oct/2024:09:24:04 +0000] "GET /api/v1/products HTTP/1.1" 304 31695 "https://google.com" "curl/8.4.0" pop=SFO waf=pass
+57.229.142.208 - - [24/Oct/2024:09:24:08 +0000] "GET /profile HTTP/1.1" 200 45953 "https://example.com" "python-requests/2.31.0" pop=NRT waf=pass
+21.222.103.211 - - [24/Oct/2024:09:24:24 +0000] "GET /search?q=phone HTTP/1.1" 301 17100 "https://google.com" "curl/8.4.0" pop=SFO waf=pass
+190.59.48.218 - - [24/Oct/2024:09:24:34 +0000] "GET /api/v1/users HTTP/1.1" 200 43673 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+23.150.245.52 - - [24/Oct/2024:09:24:41 +0000] "GET /api/v1/users HTTP/1.1" 200 11395 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+100.2.109.53 - - [24/Oct/2024:09:24:49 +0000] "GET /profile HTTP/1.1" 304 4300 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=pass
+211.202.254.8 - - [24/Oct/2024:09:25:04 +0000] "POST /forgot-password HTTP/1.1" 200 11525 "-" "curl/8.4.0" pop=LHR waf=pass
+23.32.134.57 - - [24/Oct/2024:09:25:13 +0000] "GET /....//....//....//etc/shadow HTTP/1.1" 200 623 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=log
+160.137.47.96 - - [24/Oct/2024:09:25:22 +0000] "GET /api/v1/metrics HTTP/1.1" 200 26465 "https://example.com" "python-requests/2.31.0" pop=NRT waf=pass
+222.60.121.54 - - [24/Oct/2024:09:25:28 +0000] "HEAD /dashboard HTTP/1.1" 200 46779 "-" "python-requests/2.31.0" pop=BOM waf=pass
+81.214.77.106 - - [24/Oct/2024:09:25:36 +0000] "GET /static/js/app.js HTTP/1.1" 301 40273 "https://google.com" "PostmanRuntime/7.35.0" pop=IAD waf=pass
+43.153.14.12 - - [24/Oct/2024:09:25:47 +0000] "GET /search?q=laptop HTTP/1.1" 200 19426 "https://example.com" "curl/8.4.0" pop=SYD waf=pass
+196.39.70.136 - - [24/Oct/2024:09:25:48 +0000] "GET /static/css/main.css HTTP/1.1" 200 42769 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+125.22.151.230 - - [24/Oct/2024:09:25:55 +0000] "GET /contact HTTP/1.1" 301 5596 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+81.60.254.191 - - [24/Oct/2024:09:26:01 +0000] "GET /api/v1/health HTTP/1.1" 200 27223 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=JNB waf=pass
+120.160.208.31 - - [24/Oct/2024:09:26:11 +0000] "HEAD /privacy HTTP/1.1" 200 29816 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+120.176.65.225 - - [24/Oct/2024:09:26:13 +0000] "HEAD /register HTTP/1.1" 301 12125 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+114.152.219.79 - - [24/Oct/2024:09:26:15 +0000] "HEAD /logout HTTP/1.1" 200 40152 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+23.161.129.83 - - [24/Oct/2024:09:26:32 +0000] "GET /profile HTTP/1.1" 200 33924 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=JNB waf=pass
+76.135.237.13 - - [24/Oct/2024:09:26:40 +0000] "GET /search?q=phone HTTP/1.1" 200 2785 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+44.180.86.36 - - [24/Oct/2024:09:26:57 +0000] "HEAD /favicon.ico HTTP/1.1" 200 35729 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=pass
+151.14.246.30 - - [24/Oct/2024:09:26:57 +0000] "GET /....//....//....//etc/shadow HTTP/1.1" 200 391 "-" "PostmanRuntime/7.35.0" pop=FRA waf=log
+106.27.96.133 - - [24/Oct/2024:09:27:02 +0000] "GET /logout HTTP/1.1" 200 41186 "-" "PostmanRuntime/7.35.0" pop=FRA waf=pass
+64.38.226.207 - - [24/Oct/2024:09:27:04 +0000] "HEAD /api/v1/health HTTP/1.1" 200 42938 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+218.60.240.14 - - [24/Oct/2024:09:27:09 +0000] "HEAD /login HTTP/1.1" 301 4867 "-" "PostmanRuntime/7.35.0" pop=JNB waf=pass
+194.229.165.222 - - [24/Oct/2024:09:27:10 +0000] "GET /api/v1/status HTTP/1.1" 200 4675 "https://example.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+13.127.62.117 - - [24/Oct/2024:09:27:12 +0000] "GET /search?q=laptop HTTP/1.1" 200 43950 "https://example.com" "curl/8.4.0" pop=BOM waf=pass
+182.79.20.40 - - [24/Oct/2024:09:27:20 +0000] "GET /logout HTTP/1.1" 200 41184 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=BOM waf=pass
+70.98.57.85 - - [24/Oct/2024:09:27:27 +0000] "GET /settings HTTP/1.1" 200 42686 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=LHR waf=pass
+194.111.126.175 - - [24/Oct/2024:09:27:38 +0000] "HEAD /search?q=tablet HTTP/1.1" 200 34639 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+180.78.105.178 - - [24/Oct/2024:09:27:53 +0000] "GET /about HTTP/1.1" 200 43562 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+2.180.152.193 - - [24/Oct/2024:09:28:03 +0000] "POST /search?q=tablet HTTP/1.1" 200 35472 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=FRA waf=pass
+167.102.147.83 - - [24/Oct/2024:09:28:05 +0000] "GET /register HTTP/1.1" 200 6062 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+19.117.196.23 - - [24/Oct/2024:09:28:06 +0000] "GET /api/v1/health HTTP/1.1" 200 24288 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SYD waf=pass
+150.205.214.140 - - [24/Oct/2024:09:28:12 +0000] "GET /search?q=laptop HTTP/1.1" 200 46182 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+17.172.141.164 - - [24/Oct/2024:09:28:23 +0000] "GET /search?q=tablet HTTP/1.1" 200 17314 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=LHR waf=pass
+89.197.76.215 - - [24/Oct/2024:09:28:23 +0000] "HEAD /cdn/assets/bundle.min.js HTTP/1.1" 301 3776 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=pass
+125.57.210.113 - - [24/Oct/2024:09:28:28 +0000] "GET /api/v1/orders HTTP/1.1" 200 43124 "-" "curl/8.4.0" pop=JNB waf=pass
+5.57.185.225 - - [24/Oct/2024:09:28:51 +0000] "GET /api/v2/products/{id} HTTP/1.1" 200 15985 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=GRU waf=pass
+74.71.95.81 - - [24/Oct/2024:09:28:55 +0000] "POST /logout HTTP/1.1" 200 23729 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=LHR waf=pass
+103.124.75.168 - - [24/Oct/2024:09:29:14 +0000] "GET /cdn/assets/bundle.min.js HTTP/1.1" 200 28062 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+184.149.139.107 - - [24/Oct/2024:09:29:31 +0000] "POST /favicon.ico HTTP/1.1" 200 30135 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=FRA waf=pass
+75.119.163.148 - - [24/Oct/2024:09:29:53 +0000] "HEAD /profile HTTP/1.1" 304 21215 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+166.88.20.64 - - [24/Oct/2024:09:29:56 +0000] "POST /static/img/logo.png HTTP/1.1" 301 34458 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+118.123.110.150 - - [24/Oct/2024:09:30:00 +0000] "GET /api/v1/products HTTP/1.1" 200 18638 "https://google.com" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+218.240.253.223 - - [24/Oct/2024:09:30:00 +0000] "GET /api/v1/orders HTTP/1.1" 200 21213 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=NRT waf=pass
+213.250.153.122 - - [24/Oct/2024:09:30:07 +0000] "GET /privacy HTTP/1.1" 200 44358 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=BOM waf=pass
+163.58.99.232 - - [24/Oct/2024:09:30:20 +0000] "GET /privacy HTTP/1.1" 304 42499 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+100.214.70.148 - - [24/Oct/2024:09:30:22 +0000] "POST /static/js/app.js HTTP/1.1" 200 32094 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=pass
+201.132.85.96 - - [24/Oct/2024:09:30:48 +0000] "GET /settings HTTP/1.1" 200 48233 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+196.123.29.207 - - [24/Oct/2024:09:30:48 +0000] "HEAD /static/css/main.css HTTP/1.1" 304 21144 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=IAD waf=pass
+31.3.192.168 - - [24/Oct/2024:09:31:10 +0000] "GET /..%2F..%2F..%2Fetc/passwd HTTP/1.1" 403 418 "-" "DirBuster-1.0-RC1" pop=SFO waf=block
+11.117.108.231 - - [24/Oct/2024:09:31:33 +0000] "HEAD /favicon.ico HTTP/1.1" 200 3251 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+61.214.251.247 - - [24/Oct/2024:09:31:40 +0000] "GET /api/v1/status HTTP/1.1" 304 18538 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+76.232.220.26 - - [24/Oct/2024:09:31:43 +0000] "GET /search?q=tablet HTTP/1.1" 304 42858 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=GRU waf=pass
+89.217.169.91 - - [24/Oct/2024:09:31:44 +0000] "POST /index.html HTTP/1.1" 200 16675 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=FRA waf=pass
+2.33.107.172 - - [24/Oct/2024:09:31:54 +0000] "GET /search?q=tablet HTTP/1.1" 304 28000 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+187.125.83.119 - - [24/Oct/2024:09:31:57 +0000] "POST /index.html HTTP/1.1" 304 45299 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+32.193.40.142 - - [24/Oct/2024:09:32:06 +0000] "GET /search?q=phone HTTP/1.1" 304 40735 "https://google.com" "curl/8.4.0" pop=FRA waf=pass
+104.47.178.57 - - [24/Oct/2024:09:32:09 +0000] "GET /forgot-password HTTP/1.1" 200 21896 "https://example.com" "curl/8.4.0" pop=FRA waf=pass
+127.224.41.154 - - [24/Oct/2024:09:32:21 +0000] "GET /cdn/assets/bundle.min.js HTTP/1.1" 200 48338 "https://google.com" "curl/8.4.0" pop=NRT waf=pass
+65.89.56.170 - - [24/Oct/2024:09:32:22 +0000] "GET /api/v1/status HTTP/1.1" 200 23677 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+145.16.91.238 - - [24/Oct/2024:09:32:34 +0000] "GET /api/v1/users HTTP/1.1" 200 38671 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+56.217.52.189 - - [24/Oct/2024:09:32:47 +0000] "GET /about HTTP/1.1" 200 29673 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+92.37.162.135 - - [24/Oct/2024:09:33:03 +0000] "GET /api/v1/metrics HTTP/1.1" 301 4668 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+123.31.44.72 - - [24/Oct/2024:09:33:05 +0000] "POST /api/v1/status HTTP/1.1" 200 13271 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+75.64.251.27 - - [24/Oct/2024:09:33:16 +0000] "GET /login HTTP/1.1" 200 30962 "https://example.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+111.247.90.178 - - [24/Oct/2024:09:33:16 +0000] "HEAD /api/v1/metrics HTTP/1.1" 304 8613 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=BOM waf=pass
+16.198.214.248 - - [24/Oct/2024:09:33:17 +0000] "HEAD /forgot-password HTTP/1.1" 200 37733 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=NRT waf=pass
+147.188.239.206 - - [24/Oct/2024:09:33:19 +0000] "HEAD /api/v1/status HTTP/1.1" 301 5850 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+127.24.176.242 - - [24/Oct/2024:09:33:26 +0000] "POST /search?q=laptop HTTP/1.1" 301 21088 "https://example.com" "python-requests/2.31.0" pop=LHR waf=pass
+3.57.38.242 - - [24/Oct/2024:09:33:47 +0000] "GET /sitemap.xml HTTP/1.1" 200 24396 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=pass
+84.113.32.163 - - [24/Oct/2024:09:33:49 +0000] "POST /cdn/assets/style.min.css HTTP/1.1" 304 20004 "-" "python-requests/2.31.0" pop=LHR waf=pass
+56.238.131.197 - - [24/Oct/2024:09:34:00 +0000] "GET /api/v1/metrics HTTP/1.1" 301 39996 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+8.112.149.9 - - [24/Oct/2024:09:34:05 +0000] "GET /api/v2/products/{id} HTTP/1.1" 301 19118 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=BOM waf=pass
+184.161.108.168 - - [24/Oct/2024:09:34:13 +0000] "POST /static/css/main.css HTTP/1.1" 304 30271 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=LHR waf=pass
+118.73.161.221 - - [24/Oct/2024:09:34:22 +0000] "GET /profile HTTP/1.1" 200 32154 "https://google.com" "curl/8.4.0" pop=LHR waf=pass
+157.194.172.8 - - [24/Oct/2024:09:34:24 +0000] "POST /search?q=tablet HTTP/1.1" 200 12117 "-" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+174.194.202.210 - - [24/Oct/2024:09:34:38 +0000] "GET /profile HTTP/1.1" 200 19235 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+162.137.212.97 - - [24/Oct/2024:09:34:55 +0000] "POST /api/v1/orders HTTP/1.1" 304 6301 "https://google.com" "python-requests/2.31.0" pop=NRT waf=pass
+153.20.41.108 - - [24/Oct/2024:09:35:01 +0000] "HEAD /login HTTP/1.1" 301 20933 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+56.119.168.199 - - [24/Oct/2024:09:35:31 +0000] "GET /search?q=laptop HTTP/1.1" 301 385 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=LHR waf=pass
+142.179.176.42 - - [24/Oct/2024:09:35:33 +0000] "GET /settings HTTP/1.1" 304 6123 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SYD waf=pass
+187.196.179.247 - - [24/Oct/2024:09:35:44 +0000] "POST /contact HTTP/1.1" 200 16438 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+130.86.63.94 - - [24/Oct/2024:09:35:45 +0000] "GET /static/css/main.css HTTP/1.1" 304 16963 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=IAD waf=pass
+127.100.125.39 - - [24/Oct/2024:09:35:53 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 200 1766 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+9.228.24.63 - - [24/Oct/2024:09:36:02 +0000] "GET /static/css/main.css HTTP/1.1" 200 15557 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+158.100.234.28 - - [24/Oct/2024:09:36:02 +0000] "GET /about HTTP/1.1" 200 26132 "https://google.com" "curl/8.4.0" pop=SYD waf=pass
+102.167.15.163 - - [24/Oct/2024:09:36:09 +0000] "GET /search?q=laptop HTTP/1.1" 200 32352 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+120.128.5.175 - - [24/Oct/2024:09:36:10 +0000] "GET /forgot-password HTTP/1.1" 301 49409 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+112.176.160.112 - - [24/Oct/2024:09:36:13 +0000] "HEAD /robots.txt HTTP/1.1" 200 25444 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+59.193.197.34 - - [24/Oct/2024:09:36:13 +0000] "GET /search?q=<img src=x onerror=alert(1)> HTTP/1.1" 200 167 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=log
+131.69.35.71 - - [24/Oct/2024:09:36:25 +0000] "POST /contact HTTP/1.1" 301 17709 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=NRT waf=pass
+131.205.20.12 - - [24/Oct/2024:09:36:37 +0000] "GET /api/v1/status HTTP/1.1" 304 22026 "https://google.com" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+178.102.245.81 - - [24/Oct/2024:09:36:40 +0000] "GET /static/css/main.css HTTP/1.1" 200 19300 "https://google.com" "PostmanRuntime/7.35.0" pop=FRA waf=pass
+54.175.104.176 - - [24/Oct/2024:09:36:47 +0000] "GET /robots.txt HTTP/1.1" 200 16657 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+122.19.60.24 - - [24/Oct/2024:09:36:50 +0000] "POST /login?username=' OR '1'='1'-- HTTP/1.1" 400 4517 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=log
+83.196.214.251 - - [24/Oct/2024:09:36:52 +0000] "HEAD /cdn/assets/style.min.css HTTP/1.1" 304 16468 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SIN waf=pass
+112.80.27.26 - - [24/Oct/2024:09:36:57 +0000] "GET /api/v2/users/{id} HTTP/1.1" 200 27022 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+38.33.64.71 - - [24/Oct/2024:09:37:01 +0000] "HEAD /register HTTP/1.1" 301 36137 "https://example.com" "curl/8.4.0" pop=BOM waf=pass
+207.156.140.109 - - [24/Oct/2024:09:37:01 +0000] "POST /search?q=tablet HTTP/1.1" 200 30280 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+51.96.61.239 - - [24/Oct/2024:09:37:12 +0000] "POST /api/v2/users/{id} HTTP/1.1" 200 12689 "-" "curl/8.4.0" pop=SYD waf=pass
+101.58.178.91 - - [24/Oct/2024:09:37:13 +0000] "POST /logout HTTP/1.1" 200 44344 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=BOM waf=pass
+190.122.124.13 - - [24/Oct/2024:09:37:31 +0000] "HEAD /api/v2/products/{id} HTTP/1.1" 304 15459 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SYD waf=pass
+145.51.37.138 - - [24/Oct/2024:09:37:54 +0000] "GET /robots.txt HTTP/1.1" 200 8880 "-" "curl/8.4.0" pop=FRA waf=pass
+137.13.201.152 - - [24/Oct/2024:09:37:58 +0000] "HEAD /forgot-password HTTP/1.1" 200 5701 "-" "python-requests/2.31.0" pop=GRU waf=pass
+79.119.219.168 - - [24/Oct/2024:09:38:12 +0000] "GET /dashboard HTTP/1.1" 200 271 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SFO waf=pass
+166.20.158.202 - - [24/Oct/2024:09:38:20 +0000] "POST /api/v1/products HTTP/1.1" 301 24111 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=NRT waf=pass
+214.186.83.95 - - [24/Oct/2024:09:38:53 +0000] "GET /api/v2/users/{id} HTTP/1.1" 304 17696 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=LHR waf=pass
+215.4.171.1 - - [24/Oct/2024:09:38:54 +0000] "POST /search?q=tablet HTTP/1.1" 304 47858 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=FRA waf=pass
+23.171.228.3 - - [24/Oct/2024:09:38:55 +0000] "GET /api/v2/users/{id} HTTP/1.1" 200 45627 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+76.188.113.57 - - [24/Oct/2024:09:39:06 +0000] "GET /favicon.ico HTTP/1.1" 200 30017 "https://example.com" "curl/8.4.0" pop=JNB waf=pass
+204.234.32.29 - - [24/Oct/2024:09:39:07 +0000] "POST /logout HTTP/1.1" 301 1277 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+29.12.140.63 - - [24/Oct/2024:09:39:09 +0000] "GET /api/v1/status HTTP/1.1" 304 6917 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+145.53.254.37 - - [24/Oct/2024:09:39:09 +0000] "GET /settings HTTP/1.1" 200 15797 "https://example.com" "curl/8.4.0" pop=LHR waf=pass
+131.204.169.241 - - [24/Oct/2024:09:39:17 +0000] "GET /api/v1/health HTTP/1.1" 200 11902 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+114.142.92.150 - - [24/Oct/2024:09:39:58 +0000] "POST /register HTTP/1.1" 200 6179 "https://example.com" "PostmanRuntime/7.35.0" pop=SYD waf=pass
+67.216.187.157 - - [24/Oct/2024:09:39:58 +0000] "GET /search?q='"><script>alert(1)</script> HTTP/1.1" 400 2887 "-" "python-requests/2.31.0" pop=FRA waf=log
+49.164.243.129 - - [24/Oct/2024:09:39:59 +0000] "GET /api/v1/products HTTP/1.1" 200 6983 "https://google.com" "curl/8.4.0" pop=SFO waf=pass
+23.113.181.58 - - [24/Oct/2024:09:40:10 +0000] "GET /static/js/app.js HTTP/1.1" 200 24558 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+128.151.132.233 - - [24/Oct/2024:09:40:14 +0000] "POST /static/css/main.css HTTP/1.1" 200 48482 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=BOM waf=pass
+134.146.29.243 - - [24/Oct/2024:09:40:17 +0000] "GET /uploads/../../private/keys HTTP/1.1" 400 655 "-" "masscan/1.3" pop=GRU waf=block
+171.181.85.166 - - [24/Oct/2024:09:40:23 +0000] "HEAD /api/v1/products HTTP/1.1" 301 42472 "https://example.com" "python-requests/2.31.0" pop=SYD waf=pass
+22.145.171.24 - - [24/Oct/2024:09:40:28 +0000] "GET /forgot-password HTTP/1.1" 200 14922 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=pass
+134.113.211.77 - - [24/Oct/2024:09:40:34 +0000] "GET /api/v1/products HTTP/1.1" 301 38975 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+28.10.24.177 - - [24/Oct/2024:09:40:41 +0000] "GET /static/js/app.js HTTP/1.1" 200 25120 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=NRT waf=pass
+98.89.154.104 - - [24/Oct/2024:09:40:53 +0000] "HEAD /search?q=phone HTTP/1.1" 200 20114 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SYD waf=pass
+182.213.146.225 - - [24/Oct/2024:09:41:02 +0000] "POST /search?q=laptop HTTP/1.1" 200 34457 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+191.214.79.227 - - [24/Oct/2024:09:41:16 +0000] "POST /register HTTP/1.1" 200 32269 "https://example.com" "python-requests/2.31.0" pop=IAD waf=pass
+23.56.252.39 - - [24/Oct/2024:09:41:21 +0000] "GET /profile HTTP/1.1" 301 5118 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+192.134.195.211 - - [24/Oct/2024:09:41:25 +0000] "GET /api/v1/health HTTP/1.1" 304 15523 "-" "PostmanRuntime/7.35.0" pop=BOM waf=pass
+205.84.124.133 - - [24/Oct/2024:09:41:43 +0000] "GET /sitemap.xml HTTP/1.1" 200 21891 "https://example.com" "python-requests/2.31.0" pop=FRA waf=pass
+153.240.149.9 - - [24/Oct/2024:09:42:33 +0000] "GET /about HTTP/1.1" 304 18728 "-" "PostmanRuntime/7.35.0" pop=FRA waf=pass
+95.111.227.114 - - [24/Oct/2024:09:42:37 +0000] "GET /search?q=tablet HTTP/1.1" 200 6711 "https://google.com" "curl/8.4.0" pop=SIN waf=pass
+61.31.60.120 - - [24/Oct/2024:09:42:47 +0000] "GET /api/v1/metrics HTTP/1.1" 200 45162 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+95.232.249.84 - - [24/Oct/2024:09:42:55 +0000] "HEAD /api/v1/users HTTP/1.1" 304 6304 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+58.153.41.168 - - [24/Oct/2024:09:43:05 +0000] "GET /api/v1/orders HTTP/1.1" 200 25055 "https://google.com" "python-requests/2.31.0" pop=GRU waf=pass
+180.180.72.145 - - [24/Oct/2024:09:43:31 +0000] "GET /search?q=phone HTTP/1.1" 200 35728 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=GRU waf=pass
+18.23.116.198 - - [24/Oct/2024:09:43:35 +0000] "GET /api/v1/orders HTTP/1.1" 200 6819 "https://example.com" "python-requests/2.31.0" pop=GRU waf=pass
+37.56.186.246 - - [24/Oct/2024:09:43:36 +0000] "GET /privacy HTTP/1.1" 304 43593 "https://google.com" "python-requests/2.31.0" pop=SFO waf=pass
+36.106.166.170 - - [24/Oct/2024:09:43:40 +0000] "POST /robots.txt HTTP/1.1" 200 20762 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+40.222.90.188 - - [24/Oct/2024:09:43:47 +0000] "HEAD /register HTTP/1.1" 200 40564 "https://example.com" "PostmanRuntime/7.35.0" pop=SYD waf=pass
+112.0.100.94 - - [24/Oct/2024:09:43:53 +0000] "POST /api/v1/orders HTTP/1.1" 304 21839 "https://google.com" "curl/8.4.0" pop=SFO waf=pass
+167.91.165.182 - - [24/Oct/2024:09:43:59 +0000] "GET /profile HTTP/1.1" 200 37049 "https://google.com" "PostmanRuntime/7.35.0" pop=BOM waf=pass
+217.63.145.22 - - [24/Oct/2024:09:44:03 +0000] "GET /index.html HTTP/1.1" 200 33843 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+199.234.18.76 - - [24/Oct/2024:09:44:22 +0000] "GET /api/v1/products HTTP/1.1" 200 2946 "https://example.com" "curl/8.4.0" pop=JNB waf=pass
+116.58.49.195 - - [24/Oct/2024:09:44:22 +0000] "GET /api/v1/users HTTP/1.1" 200 23474 "https://google.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=JNB waf=pass
+185.245.210.197 - - [24/Oct/2024:09:44:26 +0000] "POST /search?q=phone HTTP/1.1" 301 5033 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+77.158.209.84 - - [24/Oct/2024:09:44:38 +0000] "POST /dashboard HTTP/1.1" 200 36533 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+179.231.163.18 - - [24/Oct/2024:09:44:47 +0000] "GET /api/v1/products HTTP/1.1" 304 7742 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+55.77.210.158 - - [24/Oct/2024:09:44:49 +0000] "POST /search?q=tablet HTTP/1.1" 200 5881 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SFO waf=pass
+147.242.124.201 - - [24/Oct/2024:09:44:52 +0000] "POST /search?q=laptop HTTP/1.1" 200 12678 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+6.202.130.210 - - [24/Oct/2024:09:44:52 +0000] "GET /settings HTTP/1.1" 200 38100 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SYD waf=pass
+87.55.127.50 - - [24/Oct/2024:09:45:12 +0000] "GET /sitemap.xml HTTP/1.1" 200 9386 "-" "python-requests/2.31.0" pop=NRT waf=pass
+107.45.96.114 - - [24/Oct/2024:09:45:15 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 200 48758 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+217.122.29.63 - - [24/Oct/2024:09:45:19 +0000] "GET /cdn/assets/style.min.css HTTP/1.1" 200 7801 "https://google.com" "PostmanRuntime/7.35.0" pop=BOM waf=pass
+96.7.164.194 - - [24/Oct/2024:09:45:22 +0000] "HEAD /api/v2/users/{id} HTTP/1.1" 200 44551 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+155.100.99.76 - - [24/Oct/2024:09:45:54 +0000] "POST /api/v1/metrics HTTP/1.1" 304 5080 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=JNB waf=pass
+38.8.133.142 - - [24/Oct/2024:09:46:06 +0000] "HEAD /login HTTP/1.1" 304 27566 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=FRA waf=pass
+198.253.57.147 - - [24/Oct/2024:09:46:11 +0000] "GET /index.html HTTP/1.1" 301 24242 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=GRU waf=pass
+194.245.124.179 - - [24/Oct/2024:09:46:29 +0000] "HEAD /dashboard HTTP/1.1" 200 26193 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+159.243.4.30 - - [24/Oct/2024:09:46:52 +0000] "GET /static/img/logo.png HTTP/1.1" 200 42291 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+8.126.102.215 - - [24/Oct/2024:09:46:59 +0000] "GET /logout HTTP/1.1" 200 15833 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+187.102.159.103 - - [24/Oct/2024:09:47:03 +0000] "GET /static/img/logo.png HTTP/1.1" 301 29788 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+70.52.67.23 - - [24/Oct/2024:09:47:28 +0000] "GET /static/js/app.js HTTP/1.1" 200 36702 "-" "python-requests/2.31.0" pop=IAD waf=pass
+200.248.122.71 - - [24/Oct/2024:09:47:46 +0000] "POST /api/v1/orders HTTP/1.1" 304 18925 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+107.216.205.22 - - [24/Oct/2024:09:47:52 +0000] "HEAD /sitemap.xml HTTP/1.1" 301 10206 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+191.114.173.133 - - [24/Oct/2024:09:47:53 +0000] "HEAD /dashboard HTTP/1.1" 304 40716 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=FRA waf=pass
+35.215.191.229 - - [24/Oct/2024:09:47:59 +0000] "POST /static/img/logo.png HTTP/1.1" 200 24818 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+74.106.250.82 - - [24/Oct/2024:09:48:08 +0000] "POST /privacy HTTP/1.1" 301 47494 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=SFO waf=pass
+209.68.73.18 - - [24/Oct/2024:09:48:18 +0000] "HEAD /login HTTP/1.1" 200 40197 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+73.194.238.137 - - [24/Oct/2024:09:48:26 +0000] "GET /about HTTP/1.1" 200 23769 "https://example.com" "PostmanRuntime/7.35.0" pop=SFO waf=pass
+93.55.231.129 - - [24/Oct/2024:09:48:36 +0000] "GET /logout HTTP/1.1" 200 47860 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=IAD waf=pass
+166.187.185.99 - - [24/Oct/2024:09:48:38 +0000] "HEAD /api/v1/products HTTP/1.1" 301 10255 "https://example.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+106.127.136.41 - - [24/Oct/2024:09:48:54 +0000] "GET /static/css/main.css HTTP/1.1" 200 31047 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=GRU waf=pass
+143.247.91.95 - - [24/Oct/2024:09:49:00 +0000] "GET /static/..%252f..%252f..%252fetc/passwd HTTP/1.1" 404 259 "-" "sqlmap/1.7" pop=BOM waf=log
+28.254.101.156 - - [24/Oct/2024:09:49:04 +0000] "GET /profile HTTP/1.1" 200 34484 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+149.164.238.114 - - [24/Oct/2024:09:49:08 +0000] "POST /forgot-password HTTP/1.1" 200 33700 "https://google.com" "PostmanRuntime/7.35.0" pop=LHR waf=pass
+28.0.24.99 - - [24/Oct/2024:09:49:13 +0000] "POST /settings HTTP/1.1" 200 11101 "https://example.com" "python-requests/2.31.0" pop=SYD waf=pass
+177.40.177.14 - - [24/Oct/2024:09:49:27 +0000] "GET /static/js/app.js HTTP/1.1" 200 5181 "https://google.com" "curl/8.4.0" pop=BOM waf=pass
+93.114.62.253 - - [24/Oct/2024:09:49:40 +0000] "GET /search?q=laptop HTTP/1.1" 200 15714 "-" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+5.195.183.123 - - [24/Oct/2024:09:49:45 +0000] "HEAD /search?q=laptop HTTP/1.1" 200 22746 "https://example.com" "curl/8.4.0" pop=NRT waf=pass
+71.28.180.130 - - [24/Oct/2024:09:49:51 +0000] "GET /about HTTP/1.1" 200 29816 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SIN waf=pass
+67.174.143.226 - - [24/Oct/2024:09:49:57 +0000] "HEAD /dashboard HTTP/1.1" 200 36624 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+104.94.95.164 - - [24/Oct/2024:09:49:57 +0000] "POST /static/css/main.css HTTP/1.1" 200 48525 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=BOM waf=pass
+95.223.204.191 - - [24/Oct/2024:09:50:04 +0000] "POST /cdn/assets/bundle.min.js HTTP/1.1" 200 22419 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=GRU waf=pass
+185.240.163.235 - - [24/Oct/2024:09:50:18 +0000] "GET /privacy HTTP/1.1" 200 27327 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+183.214.114.83 - - [24/Oct/2024:09:50:19 +0000] "GET /static/js/app.js HTTP/1.1" 304 21167 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=BOM waf=pass
+221.168.225.86 - - [24/Oct/2024:09:50:23 +0000] "POST /search?q=phone HTTP/1.1" 304 39154 "https://example.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+195.111.245.54 - - [24/Oct/2024:09:50:25 +0000] "GET /about HTTP/1.1" 200 14081 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SFO waf=pass
+110.139.32.68 - - [24/Oct/2024:09:50:35 +0000] "HEAD /register HTTP/1.1" 200 32715 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+15.232.67.132 - - [24/Oct/2024:09:50:42 +0000] "POST /static/img/logo.png HTTP/1.1" 301 3983 "https://google.com" "PostmanRuntime/7.35.0" pop=NRT waf=pass
+145.155.43.64 - - [24/Oct/2024:09:50:52 +0000] "GET /sitemap.xml HTTP/1.1" 200 39935 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+179.220.91.28 - - [24/Oct/2024:09:51:00 +0000] "GET /robots.txt HTTP/1.1" 200 15992 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+185.218.228.230 - - [24/Oct/2024:09:51:08 +0000] "GET /settings HTTP/1.1" 200 29695 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+18.64.65.169 - - [24/Oct/2024:09:51:12 +0000] "POST /sitemap.xml HTTP/1.1" 200 17570 "-" "python-requests/2.31.0" pop=JNB waf=pass
+49.175.113.176 - - [24/Oct/2024:09:51:12 +0000] "HEAD /register HTTP/1.1" 200 44231 "https://google.com" "curl/8.4.0" pop=NRT waf=pass
+15.81.33.80 - - [24/Oct/2024:09:51:32 +0000] "HEAD /static/css/main.css HTTP/1.1" 200 34559 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=FRA waf=pass
+119.203.63.175 - - [24/Oct/2024:09:51:43 +0000] "GET /api/v2/products/{id} HTTP/1.1" 200 32233 "-" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+12.152.148.117 - - [24/Oct/2024:09:51:44 +0000] "HEAD /logout HTTP/1.1" 301 22340 "https://google.com" "python-requests/2.31.0" pop=LHR waf=pass
+124.151.173.206 - - [24/Oct/2024:09:51:47 +0000] "GET /static/img/logo.png HTTP/1.1" 200 9424 "https://google.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SYD waf=pass
+160.60.65.250 - - [24/Oct/2024:09:51:50 +0000] "GET /static/css/main.css HTTP/1.1" 200 22422 "-" "curl/8.4.0" pop=FRA waf=pass
+14.114.232.85 - - [24/Oct/2024:09:51:50 +0000] "HEAD /profile HTTP/1.1" 301 39518 "https://google.com" "PostmanRuntime/7.35.0" pop=SIN waf=pass
+188.137.165.219 - - [24/Oct/2024:09:51:52 +0000] "GET /search?q=phone HTTP/1.1" 200 18479 "-" "PostmanRuntime/7.35.0" pop=GRU waf=pass
+180.222.36.192 - - [24/Oct/2024:09:52:04 +0000] "GET /api/v1/users HTTP/1.1" 200 47180 "-" "curl/8.4.0" pop=SFO waf=pass
+71.22.1.86 - - [24/Oct/2024:09:52:07 +0000] "GET /register HTTP/1.1" 200 10789 "https://google.com" "PostmanRuntime/7.35.0" pop=SYD waf=pass
+144.178.177.247 - - [24/Oct/2024:09:52:08 +0000] "GET /uploads/../../private/keys HTTP/1.1" 403 231 "-" "python-requests/2.31.0" pop=GRU waf=log
+74.39.46.158 - - [24/Oct/2024:09:52:16 +0000] "HEAD /robots.txt HTTP/1.1" 200 30524 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=BOM waf=pass
+74.117.180.57 - - [24/Oct/2024:09:52:21 +0000] "GET /logout HTTP/1.1" 200 44617 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SFO waf=pass
+99.244.215.167 - - [24/Oct/2024:09:52:33 +0000] "GET /api/v1/health HTTP/1.1" 200 45824 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SFO waf=pass
+151.250.76.115 - - [24/Oct/2024:09:52:40 +0000] "HEAD /favicon.ico HTTP/1.1" 200 21986 "https://example.com" "python-requests/2.31.0" pop=SIN waf=pass
+217.38.24.196 - - [24/Oct/2024:09:52:46 +0000] "GET /static/js/app.js HTTP/1.1" 200 41533 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=LHR waf=pass
+197.28.117.211 - - [24/Oct/2024:09:53:02 +0000] "GET /search?q=laptop HTTP/1.1" 200 26490 "-" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=FRA waf=pass
+30.157.203.121 - - [24/Oct/2024:09:53:06 +0000] "POST /cdn/assets/bundle.min.js HTTP/1.1" 304 17567 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=JNB waf=pass
+44.92.150.25 - - [24/Oct/2024:09:53:12 +0000] "POST /api/v1/status HTTP/1.1" 304 17151 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SIN waf=pass
+134.211.190.118 - - [24/Oct/2024:09:53:13 +0000] "GET /login HTTP/1.1" 200 33323 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=SYD waf=pass
+206.187.46.203 - - [24/Oct/2024:09:53:14 +0000] "POST /api/v1/users HTTP/1.1" 200 35364 "https://example.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=SIN waf=pass
+17.203.111.248 - - [24/Oct/2024:09:53:32 +0000] "POST /search?q=phone HTTP/1.1" 200 32621 "https://example.com" "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/118.0.0.0 Mobile Safari/537.36" pop=NRT waf=pass
+50.17.118.158 - - [24/Oct/2024:09:53:33 +0000] "GET /api/v1/users?id=' UNION ALL SELECT NULL,NULL,table_name FROM information_schema.tables-- HTTP/1.1" 200 3046 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=IAD waf=block
+31.46.80.207 - - [24/Oct/2024:09:53:41 +0000] "GET /search?q=phone HTTP/1.1" 304 45870 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SIN waf=pass
+134.226.59.175 - - [24/Oct/2024:09:53:49 +0000] "GET /dashboard HTTP/1.1" 301 32235 "https://google.com" "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15" pop=GRU waf=pass
+81.111.102.54 - - [24/Oct/2024:09:54:15 +0000] "HEAD /dashboard HTTP/1.1" 200 45197 "https://google.com" "curl/8.4.0" pop=LHR waf=pass
+200.4.242.234 - - [24/Oct/2024:09:54:31 +0000] "GET /register HTTP/1.1" 200 39596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=NRT waf=pass
+15.63.78.78 - - [24/Oct/2024:09:54:46 +0000] "GET /api/v1/metrics HTTP/1.1" 200 46686 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=JNB waf=pass
+49.122.196.60 - - [24/Oct/2024:09:54:51 +0000] "POST /api/v1/products HTTP/1.1" 200 49004 "https://google.com" "PostmanRuntime/7.35.0" pop=SYD waf=pass
+161.152.101.40 - - [24/Oct/2024:09:54:55 +0000] "GET /profile HTTP/1.1" 200 35548 "https://google.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SIN waf=pass
+139.18.35.61 - - [24/Oct/2024:09:55:03 +0000] "GET /api/v2/products/{id} HTTP/1.1" 304 6123 "-" "python-requests/2.31.0" pop=SFO waf=pass
+105.79.121.222 - - [24/Oct/2024:09:55:12 +0000] "GET /search?q=laptop HTTP/1.1" 200 27220 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=SIN waf=pass
+179.219.117.241 - - [24/Oct/2024:09:55:13 +0000] "GET /search?q=<script>alert('XSS')</script> HTTP/1.1" 400 1661 "-" "curl/8.4.0" pop=BOM waf=block
+186.57.16.208 - - [24/Oct/2024:09:55:14 +0000] "POST /logout HTTP/1.1" 200 15972 "-" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SFO waf=pass
+214.102.29.64 - - [24/Oct/2024:09:55:14 +0000] "GET /static/img/logo.png HTTP/1.1" 200 23817 "https://example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15" pop=SIN waf=pass
+197.67.192.40 - - [24/Oct/2024:09:55:19 +0000] "GET /api/v1/metrics HTTP/1.1" 304 41142 "https://google.com" "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/119.0" pop=GRU waf=pass
+85.121.25.191 - - [24/Oct/2024:09:55:30 +0000] "POST /cdn/assets/style.min.css HTTP/1.1" 200 24608 "https://example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" pop=NRT waf=pass

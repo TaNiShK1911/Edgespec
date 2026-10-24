@@ -1,0 +1,7 @@
+# EdgeSpec-H2O — Jetson Nano requirements
+# Python 3.6.9, PyTorch 1.10.0 (NVIDIA build, CUDA 10.2)
+# torch is pre-installed on the Nano via NVIDIA's wheel — do NOT pip install it here
+numpy==1.19.5
+regex>=2021.4.4
+dataclasses>=0.6;python_version<"3.7"
+tqdm>=4.60.0,<4.65.0

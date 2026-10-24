@@ -146,8 +146,8 @@ from edgespec.model.opt import OPTModel
 config = OPT_CONFIGS['opt-125m']
 dtype = torch.float32 if device == 'cpu' else torch.float16
 model = OPTModel(config, dtype=dtype)
+model = model.to(device).to(dtype)
 model.lm_head_weight = model.embed_tokens.weight
-model = model.to(device)
 model.eval()
 
 prompt = torch.randint(10, config['vocab_size'], (1, 32),
@@ -297,49 +297,56 @@ device = sys.argv[1]
 from edgespec.cache.h2o_cache import H2OCache
 
 n_heads = 12
+from edgespec.model.opt import OPTDecoderLayer
+from edgespec.config import OPT_CONFIGS
+
+config = OPT_CONFIGS['opt-125m']
+d_model = config['d_model']
 d_head = 64
 dtype = torch.float32 if device == 'cpu' else torch.float16
 cache = H2OCache(n_heads=n_heads, d_head=d_head,
                   n_hh=128, n_local=128, n_pin=4, n_scratch=8,
                   decay=0.98, device=device, dtype=dtype)
+layer = OPTDecoderLayer(d_model, n_heads, config['d_ffn'], dtype=dtype).to(device).to(dtype)
+layer.eval()
 
 n_prefill = 200
-k = torch.randn(n_heads, n_prefill, d_head, device=device, dtype=dtype)
-v = torch.randn(n_heads, n_prefill, d_head, device=device, dtype=dtype)
-cache.prefill_append(k, v, torch.arange(n_prefill, device=device))
+x_init = torch.randn(1, n_prefill, d_model, device=device, dtype=dtype)
+pos_init = torch.arange(n_prefill, device=device).unsqueeze(0)
+with torch.no_grad():
+    layer(x_init, cache, pos_init)
 
 n_steps = 50
 times_total = []
 times_score_evict = []
 
-for step in range(n_steps):
-    if device == 'cuda':
-        torch.cuda.synchronize()
-    t0 = time.time()
+with torch.no_grad():
+    for step in range(n_steps):
+        x = torch.randn(1, 1, d_model, device=device, dtype=dtype)
+        pos = torch.tensor([[n_prefill + step]], device=device)
 
-    cache.begin_block(1)
-    k_new = torch.randn(n_heads, 1, d_head, device=device, dtype=dtype)
-    v_new = torch.randn(n_heads, 1, d_head, device=device, dtype=dtype)
-    cache.append_kv(k_new, v_new, torch.tensor([n_prefill + step], device=device))
-    cache.commit(1)
+        if device == 'cuda':
+            torch.cuda.synchronize()
+        t0 = time.time()
 
-    if device == 'cuda':
-        torch.cuda.synchronize()
-    t_score_start = time.time()
-    probs = torch.rand(n_heads, 1, cache._n_valid(), device=device, dtype=torch.float32)
-    cache.update_scores(probs, 1)
-    cache.evict_to_budget()
-    if device == 'cuda':
-        torch.cuda.synchronize()
-    t_score_end = time.time()
+        cache.begin_block(1)
+        out, probs = layer(x, cache, pos, return_attn_probs=True)
+        cache.commit(1)
 
-    if device == 'cuda':
-        torch.cuda.synchronize()
-    t1 = time.time()
+        if device == 'cuda':
+            torch.cuda.synchronize()
+        t_decode = time.time() - t0
 
-    if step > 5:
-        times_total.append(t1 - t0)
-        times_score_evict.append(t_score_end - t_score_start)
+        t_score_start = time.time()
+        cache.update_scores(probs, 1)
+        cache.evict_to_budget()
+        if device == 'cuda':
+            torch.cuda.synchronize()
+        t_score_end = time.time()
+
+        if step > 5:
+            times_total.append(t_decode + (t_score_end - t_score_start))
+            times_score_evict.append(t_score_end - t_score_start)
 
 avg_total = sum(times_total) / len(times_total) if times_total else 1e-6
 avg_score = sum(times_score_evict) / len(times_score_evict) if times_score_evict else 0

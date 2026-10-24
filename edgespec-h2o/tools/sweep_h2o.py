@@ -220,9 +220,10 @@ def main():
     print("=" * 70)
 
     config = OPT_CONFIGS['opt-%s' % args.model_size]
-    model = OPTModel(config, dtype=torch.float32 if args.device == 'cpu' else torch.float16)
+    dtype = torch.float32 if args.device == 'cpu' else torch.float16
+    model = OPTModel(config, dtype=dtype)
+    model = model.to(args.device).to(dtype)
     model.lm_head_weight = model.embed_tokens.weight
-    model = model.to(args.device)
     model.eval()
 
     input_ids = create_sample_text_tokens(

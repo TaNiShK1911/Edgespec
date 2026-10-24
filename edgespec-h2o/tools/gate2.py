@@ -87,9 +87,10 @@ class Gate2Runner:
         print("\n--- G2.2: Equivalence (H2O no-eviction == full-cache) ---")
         try:
             config = OPT_CONFIGS['opt-125m']
-            model = OPTModel(config, dtype=torch.float32 if self.device == 'cpu' else torch.float16)
+            dtype = torch.float32 if self.device == 'cpu' else torch.float16
+            model = OPTModel(config, dtype=dtype)
+            model = model.to(self.device).to(dtype)
             model.lm_head_weight = model.embed_tokens.weight
-            model = model.to(self.device)
             model.eval()
 
             prompt = torch.randint(10, config['vocab_size'], (1, 32),
@@ -183,9 +184,10 @@ class Gate2Runner:
         try:
             from tools.sweep_h2o import run_baseline_comparison, create_sample_text_tokens
             config = OPT_CONFIGS['opt-125m']
-            model = OPTModel(config, dtype=torch.float32 if self.device == 'cpu' else torch.float16)
+            dtype = torch.float32 if self.device == 'cpu' else torch.float16
+            model = OPTModel(config, dtype=dtype)
+            model = model.to(self.device).to(dtype)
             model.lm_head_weight = model.embed_tokens.weight
-            model = model.to(self.device)
             model.eval()
 
             input_ids = create_sample_text_tokens(vocab_size=config['vocab_size'], seq_len=256).to(self.device)
@@ -222,55 +224,59 @@ class Gate2Runner:
         """G2.7: Scoring and eviction overhead <= 15%."""
         print("\n--- G2.7: Scoring + eviction overhead ---")
         try:
+            config = OPT_CONFIGS['opt-125m']
             n_heads = 12
             d_head = 64
+            d_model = config['d_model']
+            dtype = torch.float32 if self.device == 'cpu' else torch.float16
+
+            model = OPTModel(config, dtype=dtype).to(self.device).to(dtype)
+            model.eval()
+
             cache = H2OCache(
                 n_heads=n_heads, d_head=d_head,
                 n_hh=128, n_local=128, n_pin=4, n_scratch=8,
                 decay=0.98, device=self.device,
-                dtype=torch.float32 if self.device == 'cpu' else torch.float16
+                dtype=dtype
             )
+
             n_prefill = 200
-            k = torch.randn(n_heads, n_prefill, d_head, device=self.device)
-            v = torch.randn(n_heads, n_prefill, d_head, device=self.device)
-            if self.device != 'cpu':
-                k, v = k.half(), v.half()
+            k = torch.randn(n_heads, n_prefill, d_head, device=self.device, dtype=dtype)
+            v = torch.randn(n_heads, n_prefill, d_head, device=self.device, dtype=dtype)
             cache.prefill_append(k, v, torch.arange(n_prefill, device=self.device))
 
             n_steps = 50
             times_total = []
             times_score_evict = []
 
-            for step in range(n_steps):
-                if self.device == 'cuda':
-                    torch.cuda.synchronize()
-                t0 = time.time()
+            with torch.no_grad():
+                for step in range(n_steps):
+                    x = torch.randn(1, 1, d_model, device=self.device, dtype=dtype)
+                    pos = torch.tensor([n_prefill + step], device=self.device)
 
-                cache.begin_block(1)
-                k_new = torch.randn(n_heads, 1, d_head, device=self.device)
-                v_new = torch.randn(n_heads, 1, d_head, device=self.device)
-                if self.device != 'cpu':
-                    k_new, v_new = k_new.half(), v_new.half()
-                cache.append_kv(k_new, v_new, torch.tensor([n_prefill + step], device=self.device))
-                cache.commit(1)
+                    if self.device == 'cuda':
+                        torch.cuda.synchronize()
+                    t0 = time.time()
 
-                if self.device == 'cuda':
-                    torch.cuda.synchronize()
-                t_score_start = time.time()
-                probs = torch.rand(n_heads, 1, cache._n_valid(), device=self.device, dtype=torch.float32)
-                cache.update_scores(probs, 1)
-                cache.evict_to_budget()
-                if self.device == 'cuda':
-                    torch.cuda.synchronize()
-                t_score_end = time.time()
+                    cache.begin_block(1)
+                    out, probs = model._h2o_attention(0, x, cache, pos, return_attn_probs=True)
+                    out = model.layers[0].mlp(out)
+                    cache.commit(1)
 
-                if self.device == 'cuda':
-                    torch.cuda.synchronize()
-                t1 = time.time()
+                    if self.device == 'cuda':
+                        torch.cuda.synchronize()
+                    t_decode = time.time() - t0
 
-                if step > 5:
-                    times_total.append(t1 - t0)
-                    times_score_evict.append(t_score_end - t_score_start)
+                    t_score_start = time.time()
+                    cache.update_scores(probs, 1)
+                    cache.evict_to_budget()
+                    if self.device == 'cuda':
+                        torch.cuda.synchronize()
+                    t_score_end = time.time()
+
+                    if step > 5:
+                        times_total.append(t_decode + (t_score_end - t_score_start))
+                        times_score_evict.append(t_score_end - t_score_start)
 
             avg_total = sum(times_total) / len(times_total) if times_total else 1e-6
             avg_score = sum(times_score_evict) / len(times_score_evict) if times_score_evict else 0

@@ -25,6 +25,8 @@ class LayerNorm(nn.LayerNorm):
     """LayerNorm that supports Half on CPU by executing in float32 when necessary."""
 
     def forward(self, input):
+        if self.weight is not None and input.dtype != self.weight.dtype:
+            input = input.to(self.weight.dtype)
         if input.is_cuda or input.dtype != torch.float16:
             return F.layer_norm(input, self.normalized_shape, self.weight, self.bias, self.eps)
         w = self.weight.float() if self.weight is not None else None
@@ -334,6 +336,9 @@ class OPTModel(nn.Module):
 
         # KV caches (one per layer)
         self.kv_caches = None
+
+        if dtype is not None and dtype != torch.float32:
+            self.to(dtype)
 
     def init_kv_caches(self, max_seq_len=None, device='cuda'):
         """Pre-allocate KV caches for all layers.

@@ -425,8 +425,61 @@ class TestGoldenLogitsParity(object):
         if not os.path.exists(golden_file):
             pytest.skip("Golden logits file not found — run export_golden.py first")
 
-        from edgespec.model.loader import load_model_from_hf
-        model = load_model_from_hf("facebook/opt-125m", device="cpu", dtype=torch.float32)
+        try:
+            from edgespec.model.loader import load_model_from_hf
+            model = load_model_from_hf("facebook/opt-125m", device="cpu", dtype=torch.float32)
+        except (ImportError, ModuleNotFoundError):
+            # Check local checkpoint path (e.g. on Jetson Nano)
+            local_bin = os.path.expanduser("~/edgespec/models/opt-125m/pytorch_model.bin")
+            if not os.path.exists(local_bin):
+                # also check relative data/weights
+                local_bin = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                        'data', 'weights', 'opt-125m', 'pytorch_model.bin')
+            if os.path.exists(local_bin):
+                from edgespec.config import OPT_CONFIGS
+                def assign_p(mod, full_name, t):
+                    parts = full_name.split('.')
+                    obj = mod
+                    for p in parts[:-1]:
+                        if p.isdigit():
+                            obj = obj[int(p)]
+                        else:
+                            obj = getattr(obj, p)
+                    param = getattr(obj, parts[-1])
+                    if isinstance(param, torch.nn.Parameter):
+                        param.data.copy_(t)
+                    else:
+                        setattr(obj, parts[-1], t)
+
+                config = OPT_CONFIGS['opt-125m']
+                model = OPTModel(config, dtype=torch.float32)
+                sd = torch.load(local_bin, map_location="cpu")
+                mapping = {}
+                mapping["embed_tokens.weight"] = sd.get("model.decoder.embed_tokens.weight")
+                mapping["embed_positions.weight"] = sd.get("model.decoder.embed_positions.weight")
+                if "model.decoder.final_layer_norm.weight" in sd:
+                    mapping["final_layer_norm.weight"] = sd["model.decoder.final_layer_norm.weight"]
+                    mapping["final_layer_norm.bias"] = sd["model.decoder.final_layer_norm.bias"]
+                for i in range(config["n_layers"]):
+                    hf_pfx = "model.decoder.layers.%d" % i
+                    our_pfx = "layers.%d" % i
+                    for proj in ("q_proj", "k_proj", "v_proj", "out_proj"):
+                        mapping["%s.self_attn.%s.weight" % (our_pfx, proj)] = sd.get("%s.self_attn.%s.weight" % (hf_pfx, proj))
+                        mapping["%s.self_attn.%s.bias" % (our_pfx, proj)] = sd.get("%s.self_attn.%s.bias" % (hf_pfx, proj))
+                    for ln in ("self_attn_layer_norm", "final_layer_norm"):
+                        mapping["%s.%s.weight" % (our_pfx, ln)] = sd.get("%s.%s.weight" % (hf_pfx, ln))
+                        mapping["%s.%s.bias" % (our_pfx, ln)] = sd.get("%s.%s.bias" % (hf_pfx, ln))
+                    mapping["%s.mlp.fc1.weight" % our_pfx] = sd.get("%s.fc1.weight" % hf_pfx)
+                    mapping["%s.mlp.fc1.bias" % our_pfx] = sd.get("%s.fc1.bias" % hf_pfx)
+                    mapping["%s.mlp.fc2.weight" % our_pfx] = sd.get("%s.fc2.weight" % hf_pfx)
+                    mapping["%s.mlp.fc2.bias" % our_pfx] = sd.get("%s.fc2.bias" % hf_pfx)
+                for name, tensor in mapping.items():
+                    if tensor is not None:
+                        assign_p(model, name, tensor.to(torch.float32))
+                model.lm_head_weight = model.embed_tokens.weight
+                model.eval()
+            else:
+                pytest.skip("transformers not installed and local weights not found")
 
         with open(golden_file, 'r', encoding='utf-8') as f:
             data = json.load(f)

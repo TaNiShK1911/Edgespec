@@ -85,9 +85,10 @@ def run_soak_test(duration_sec=600, model_size='125m', device='cpu'):
     print("=" * 65)
 
     config = OPT_CONFIGS['opt-%s' % model_size]
-    model = OPTModel(config, dtype=torch.float32 if device == 'cpu' else torch.float16)
+    dtype = torch.float32 if device == 'cpu' else torch.float16
+    model = OPTModel(config, dtype=dtype)
+    model = model.to(device).to(dtype)
     model.lm_head_weight = model.embed_tokens.weight
-    model = model.to(device)
     model.eval()
 
     # Initialize H2O cache with 20% budget

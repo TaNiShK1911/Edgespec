@@ -166,3 +166,46 @@ GATE2 = {
     "soak_duration_sec": 600,            # G2.8: 10-min soak duration
 }
 
+# --------------------------------------------------------------------------- #
+#  Speculative Decoding (Phase 3)
+# --------------------------------------------------------------------------- #
+SPEC_DEFAULTS = {
+    "gamma_max": 6,            # maximum draft length
+    "gamma_fixed": 4,          # fixed gamma when controller is off
+    "lenience": 1.0,           # strict/lossless by default
+    "mode": "greedy",          # 'greedy' or 'sampling'
+    "temperature": 1.0,        # sampling temperature
+    "drafter_max_n": 4,        # max n-gram length for suffix matching
+    "drafter_selector": "importance",  # 'importance', 'most_recent', 'longest'
+    "gamma_ema_alpha": 0.1,    # EMA smoothing for gamma controller
+}
+
+# Lenience sweep values for ablation (G3.6)
+LENIENCE_SWEEP = [1.0, 0.8, 0.6, 0.45, 0.3]
+
+# --------------------------------------------------------------------------- #
+#  Gate thresholds (Phase 3)
+# --------------------------------------------------------------------------- #
+GATE3 = {
+    "sampler_chi2_p_min": 0.01,          # G3.1: chi-square p > 0.01
+    "spec_mismatch_pct_max": 1.0,        # G3.2: <= 1% token mismatches
+    "logit_margin_near_tie": 0.05,       # G3.2: top-2 margin for near-tie
+    "speedup_pass": 1.5,                 # G3.4: minimum speedup for pass
+    "speedup_target": 2.0,               # G3.4: target speedup
+    "speedup_stretch": 2.8,              # G3.4: stretch goal
+    "mem_overhead_max_mib": 50,          # G3.5: Mode D peak <= Phase-2 + 50 MiB
+    "soak_duration_sec": 1800,           # G3.5: 30-min soak
+    "ui_updates_per_sec_min": 5,         # G3.7: >= 5 updates/s
+    "ui_decode_slowdown_pct_max": 5.0,   # G3.7: <= 5% decode slowdown
+    "waf_regex_compile_rate": 100.0,     # G3.8: 100% regex compile rate
+    "waf_attack_recall_min": 80.0,       # G3.8: >= 80% attack recall
+    "waf_fpr_max": 5.0,                  # G3.8: <= 5% FPR on benign
+    "triage_accuracy_min": 80.0,         # G3.8: >= 80% top offender accuracy
+}
+
+# --------------------------------------------------------------------------- #
+#  Demo / telemetry
+# --------------------------------------------------------------------------- #
+TELEMETRY_PORT = 8765
+DEMO_LOG_WINDOW_SIZE = 200              # lines per triage window
+

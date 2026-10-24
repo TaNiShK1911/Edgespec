@@ -95,6 +95,36 @@ MAX_SEQ_LEN = 2048
 PREFILL_CHUNK_SIZE = 128  # tokens per chunk in layer-major prefill
 
 # --------------------------------------------------------------------------- #
+#  H2O cache (Phase 2)
+# --------------------------------------------------------------------------- #
+H2O_DEFAULTS = {
+    "n_hh": 128,               # heavy-hitter slots per head
+    "n_local": 128,            # local (recent) window slots per head
+    "n_pin": 4,                # pinned attention-sink positions
+    "n_scratch": 8,            # scratch slots for speculative tokens (gamma_max + 1)
+    "decay": 0.98,             # score decay lambda (1.0 = plain H2O)
+    "evict_every": 1,          # evict after every N commits (1 = every commit)
+}
+
+# Budget presets (fraction of 2048 context)
+H2O_BUDGET_PRESETS = {
+    "10pct": {"n_hh": 78, "n_local": 128, "n_pin": 4},       # ~10% = 210 tok
+    "20pct": {"n_hh": 278, "n_local": 128, "n_pin": 4},      # ~20% = 410 tok
+    "30pct": {"n_hh": 482, "n_local": 128, "n_pin": 4},      # ~30% = 614 tok
+    "50pct": {"n_hh": 892, "n_local": 128, "n_pin": 4},      # ~50% = 1024 tok
+    "100pct": {"n_hh": 1916, "n_local": 128, "n_pin": 4},    # 100% = 2048 tok
+}
+
+# Decay sweep values for ablation
+H2O_DECAY_SWEEP = [1.0, 0.99, 0.98, 0.95]
+
+# Pin sweep values for ablation
+H2O_PIN_SWEEP = [0, 1, 4]
+
+# Importance layers (for Phase 3 drafter token-importance vector)
+H2O_IMPORTANCE_LAYERS = [8, 16, 23]  # layers to accumulate importance from
+
+# --------------------------------------------------------------------------- #
 #  Profiling / benchmarking
 # --------------------------------------------------------------------------- #
 WARMUP_STEPS = 3
@@ -119,3 +149,20 @@ GATE1 = {
     "peak_ram_gib": 3.3,              # G1.7
     "min_tok_per_sec": 1.0,           # G1.8
 }
+
+# --------------------------------------------------------------------------- #
+#  Gate thresholds (Phase 2)
+# --------------------------------------------------------------------------- #
+GATE2 = {
+    "equivalence_max_abs_diff": 1e-3,    # G2.2: no-eviction logits == full-cache
+    "commit_rollback_max_diff": 1e-3,    # G2.3: commit/rollback correctness
+    "mem_alloc_tolerance_pct": 5.0,      # G2.4: within 5% of formula
+    "mem_saving_min_mib": 250,           # G2.4: >= 250 MiB lower than full-KV
+    "rouge2_pct_of_full": 90.0,          # G2.5: ROUGE-2 >= 90% of full cache
+    "delta_ppl_max": 1.0,                # G2.5: ΔPPL <= +1.0 vs full cache
+    "ppl_nano_laptop_tolerance": 0.05,   # G2.5: Nano vs laptop ΔPPL <= 0.05
+    "scoring_overhead_max_pct": 15.0,    # G2.7: scoring+eviction <= 15% of step
+    "soak_rss_drift_max_mib": 20,        # G2.8: RSS drift <= 20 MiB in 10 min
+    "soak_duration_sec": 600,            # G2.8: 10-min soak duration
+}
+

@@ -1,6 +1,4 @@
-# EdgeSpec-H2O Makefile
-
-.PHONY: check test gate1 gate1-laptop gate1-fast gate1-full gate2 gate3 lint clean logs
+.PHONY: check test gate1 gate1-laptop gate1-fast gate1-full gate2 gate2-laptop gate2-full gate3 lint clean logs
 
 # Environment check
 check:
@@ -19,6 +17,9 @@ test-qlinear:
 
 test-model:
 	python -m pytest tests/test_model.py -v
+
+test-h2o:
+	python -m pytest tests/test_h2o_cache.py -v
 
 # Gate runs
 gate1:
@@ -42,6 +43,20 @@ gate1-full:
 		--model-size 1.3b \
 		--decode-tps-min 8 \
 		--mem-budget-mb 3800
+
+# Gate 2 — H2O KV cache
+gate2:
+	bash bench/gate2.sh
+
+# Gate 2 — laptop mode (no weights, code checks only)
+gate2-laptop:
+	bash bench/gate2.sh --no-weights --skip-soak --device cpu
+
+# Gate 2 — full Nano run
+gate2-full:
+	bash bench/gate2.sh \
+		--weights data/weights/opt-1.3b-4bit.edgespec \
+		--model-size 1.3b
 
 # Offline quantization (laptop only)
 quantize-125m:
@@ -81,3 +96,4 @@ clean:
 	find . -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 	find . -name '*.pyc' -delete 2>/dev/null || true
 	rm -rf results/*.json results/*.log results/*.csv
+

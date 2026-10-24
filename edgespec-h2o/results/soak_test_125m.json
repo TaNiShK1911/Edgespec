@@ -1,0 +1,12 @@
+{
+  "duration_sec": 5.03983473777771,
+  "total_tokens": 132,
+  "tok_per_sec": 26.19133500758494,
+  "baseline_rss_mib": 922.953125,
+  "final_rss_mib": 922.65234375,
+  "peak_rss_mib": 922.953125,
+  "rss_drift_mib": -0.30078125,
+  "threshold_mib": 20.0,
+  "passed": true,
+  "temps": {}
+}

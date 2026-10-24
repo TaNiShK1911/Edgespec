@@ -1,0 +1,195 @@
+{
+  "model": "opt-125m",
+  "seq_len": 256,
+  "baselines": {
+    "Full": {
+      "loss": 466.3379211425781,
+      "ppl": 3.372763229449309e+202,
+      "time_sec": 0.501866340637207,
+      "mem_mib": 37.2052001953125,
+      "delta_ppl": 0.0
+    },
+    "Local": {
+      "loss": 466.3379211425781,
+      "ppl": 3.372763229449309e+202,
+      "time_sec": 0.5172955989837646,
+      "mem_mib": 4.2213592529296875,
+      "delta_ppl": 0.0
+    },
+    "H2O (lambda=1.0)": {
+      "loss": 466.3379211425781,
+      "ppl": 3.372763229449309e+202,
+      "time_sec": 0.5324442386627197,
+      "mem_mib": 4.2213592529296875,
+      "delta_ppl": 0.0
+    },
+    "H2O (lambda=0.98)": {
+      "loss": 466.3379211425781,
+      "ppl": 3.372763229449309e+202,
+      "time_sec": 0.5550122261047363,
+      "mem_mib": 4.2213592529296875,
+      "delta_ppl": 0.0
+    }
+  },
+  "sweep": [
+    {
+      "budget_pct": 10,
+      "budget_tokens": 25,
+      "n_pin": 1,
+      "n_local": 12,
+      "n_hh": 12,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 2.36,
+      "time_sec": 0.582
+    },
+    {
+      "budget_pct": 10,
+      "budget_tokens": 25,
+      "n_pin": 1,
+      "n_local": 12,
+      "n_hh": 12,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 2.36,
+      "time_sec": 0.562
+    },
+    {
+      "budget_pct": 10,
+      "budget_tokens": 25,
+      "n_pin": 4,
+      "n_local": 10,
+      "n_hh": 11,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 2.36,
+      "time_sec": 0.528
+    },
+    {
+      "budget_pct": 10,
+      "budget_tokens": 25,
+      "n_pin": 4,
+      "n_local": 10,
+      "n_hh": 11,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 2.36,
+      "time_sec": 0.48
+    },
+    {
+      "budget_pct": 20,
+      "budget_tokens": 51,
+      "n_pin": 1,
+      "n_local": 25,
+      "n_hh": 25,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 4.22,
+      "time_sec": 0.493
+    },
+    {
+      "budget_pct": 20,
+      "budget_tokens": 51,
+      "n_pin": 1,
+      "n_local": 25,
+      "n_hh": 25,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 4.22,
+      "time_sec": 0.48
+    },
+    {
+      "budget_pct": 20,
+      "budget_tokens": 51,
+      "n_pin": 4,
+      "n_local": 23,
+      "n_hh": 24,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 4.22,
+      "time_sec": 0.502
+    },
+    {
+      "budget_pct": 20,
+      "budget_tokens": 51,
+      "n_pin": 4,
+      "n_local": 23,
+      "n_hh": 24,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 4.22,
+      "time_sec": 0.503
+    },
+    {
+      "budget_pct": 30,
+      "budget_tokens": 76,
+      "n_pin": 1,
+      "n_local": 37,
+      "n_hh": 38,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 6.01,
+      "time_sec": 0.485
+    },
+    {
+      "budget_pct": 30,
+      "budget_tokens": 76,
+      "n_pin": 1,
+      "n_local": 37,
+      "n_hh": 38,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 6.01,
+      "time_sec": 0.491
+    },
+    {
+      "budget_pct": 30,
+      "budget_tokens": 76,
+      "n_pin": 4,
+      "n_local": 36,
+      "n_hh": 36,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 6.01,
+      "time_sec": 0.496
+    },
+    {
+      "budget_pct": 30,
+      "budget_tokens": 76,
+      "n_pin": 4,
+      "n_local": 36,
+      "n_hh": 36,
+      "decay": 0.98,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 6.01,
+      "time_sec": 0.497
+    }
+  ],
+  "recalibration_p2_6": {
+    "recommended_budget_pct": 20,
+    "best_b20_config": {
+      "budget_pct": 20,
+      "budget_tokens": 51,
+      "n_pin": 1,
+      "n_local": 25,
+      "n_hh": 25,
+      "decay": 1.0,
+      "loss": 466.3379,
+      "ppl": 3.372763229449309e+202,
+      "mem_mib": 4.22,
+      "time_sec": 0.493
+    }
+  }
+}

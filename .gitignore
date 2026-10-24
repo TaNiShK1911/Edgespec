@@ -34,3 +34,4 @@ edgespec-h2o/data/golden/*.bin
 wheels/
 *.egg-info/
 *.egg-link
+edgespec-h2o/results/*.log

@@ -495,3 +495,380 @@ class OPTModel(nn.Module):
         if self.kv_caches is None:
             return 0
         return sum(c.memory_bytes() for c in self.kv_caches)
+
+    # =======================================================================
+    #  H2O cache integration (Phase 2)
+    # =======================================================================
+
+    def init_h2o_caches(self, n_hh=128, n_local=128, n_pin=4, n_scratch=8,
+                        decay=0.98, evict_every=1, device='cuda'):
+        """Pre-allocate H2O caches for all layers.
+
+        Parameters
+        ----------
+        n_hh, n_local, n_pin, n_scratch, decay, evict_every : see H2OCache
+        device : str
+        """
+        from edgespec.cache.h2o_cache import create_h2o_caches
+
+        self.h2o_caches = create_h2o_caches(
+            n_layers=self.n_layers,
+            n_heads=self.n_heads,
+            d_head=self.d_head,
+            n_hh=n_hh, n_local=n_local,
+            n_pin=n_pin, n_scratch=n_scratch,
+            decay=decay, evict_every=evict_every,
+            device=device, dtype=self.dtype,
+        )
+
+    def reset_h2o_caches(self):
+        """Clear all H2O caches."""
+        if hasattr(self, 'h2o_caches') and self.h2o_caches is not None:
+            for cache in self.h2o_caches:
+                cache.reset()
+
+    def _h2o_attention(self, layer_idx, x, h2o_cache, positions,
+                       return_attn_probs=True):
+        """Run attention with H2O cache for one layer.
+
+        Instead of using the layer's built-in KV cache, we use the H2O cache
+        which handles append_kv, masking, and provides valid-slot semantics.
+
+        Parameters
+        ----------
+        layer_idx : int
+        x : [1, n_new, d_model]
+        h2o_cache : H2OCache
+        positions : [n_new] int tensor — absolute position ids for new tokens
+        return_attn_probs : bool
+
+        Returns
+        -------
+        output : [1, n_new, d_model]
+        attn_probs : [n_heads, n_new, n_total] or None
+        """
+        layer = self.layers[layer_idx]
+        attn = layer.self_attn
+        bsz = 1
+        n_new = x.shape[1]
+
+        # Project Q, K, V
+        q = attn.q_proj(x)
+        k_new = attn.k_proj(x)
+        v_new = attn.v_proj(x)
+
+        # Reshape to [n_heads, n_new, d_head]
+        q = q.view(bsz, n_new, attn.n_heads, attn.d_head).permute(0, 2, 1, 3).squeeze(0)
+        k_new = k_new.view(bsz, n_new, attn.n_heads, attn.d_head).permute(0, 2, 1, 3).squeeze(0)
+        v_new = v_new.view(bsz, n_new, attn.n_heads, attn.d_head).permute(0, 2, 1, 3).squeeze(0)
+
+        # Append new KV to H2O cache
+        h2o_cache.append_kv(k_new, v_new, positions)
+
+        # Get all valid KV from cache
+        k_full, v_full, valid_mask, n_total = h2o_cache.get_kv()
+
+        # Attention scores: [n_heads, n_new, n_total]
+        attn_weights = torch.matmul(q, k_full.transpose(1, 2)) * attn.scale
+
+        # Valid-slot mask: only attend to valid slots
+        # valid_mask: [n_heads, n_total] -> [n_heads, 1, n_total]
+        attn_weights = attn_weights.masked_fill(
+            ~valid_mask.unsqueeze(1), float('-inf')
+        )
+
+        # Causal mask: each new token at position i can only attend to
+        # positions <= its own position
+        if n_new > 1:
+            cache_positions = h2o_cache.get_positions()  # [n_heads, n_total]
+            new_positions = positions.unsqueeze(0).expand(self.n_heads, -1)  # [n_heads, n_new]
+            # For each head h, new token j at position new_positions[h,j]
+            # can attend to cache position cache_positions[h,k] if
+            # cache_positions[h,k] <= new_positions[h,j]
+            causal_mask = cache_positions.unsqueeze(1) <= new_positions.unsqueeze(2)
+            # causal_mask: [n_heads, n_new, n_total]
+            attn_weights = attn_weights.masked_fill(~causal_mask, float('-inf'))
+
+        # Softmax in FP32
+        attn_probs = F.softmax(attn_weights.float(), dim=-1).to(x.dtype)
+
+        # Weighted sum
+        attn_output = torch.matmul(attn_probs, v_full)
+
+        # Reshape back
+        attn_output = attn_output.unsqueeze(0).permute(0, 2, 1, 3).reshape(
+            bsz, n_new, attn.d_model
+        )
+        output = attn.out_proj(attn_output)
+
+        if return_attn_probs:
+            return output, attn_probs
+        return output, None
+
+    def forward_block_h2o(self, token_ids, start_pos=None,
+                           return_attn_probs=True):
+        """Forward pass using H2O caches.
+
+        Does NOT call begin_block/commit — caller must do that for
+        speculative rollback safety.
+
+        Parameters
+        ----------
+        token_ids : torch.LongTensor [1, k]
+        start_pos : int or None
+        return_attn_probs : bool
+
+        Returns
+        -------
+        logits : [1, k, vocab_size]
+        all_attn_probs : list of [n_heads, k, n_total] or None
+        """
+        assert hasattr(self, 'h2o_caches') and self.h2o_caches is not None, \
+            "Call init_h2o_caches() first"
+
+        device = token_ids.device
+        k = token_ids.shape[1]
+
+        if start_pos is None:
+            start_pos = self.h2o_caches[0].length
+
+        # Position ids with OPT offset
+        positions = torch.arange(
+            start_pos + self.position_offset,
+            start_pos + self.position_offset + k,
+            device=device, dtype=torch.long
+        )
+
+        # Token + position embeddings
+        position_ids = positions.unsqueeze(0)  # [1, k]
+        x = self.embed_tokens(token_ids) + self.embed_positions(position_ids)
+        x = x.to(self.dtype)
+
+        all_attn_probs = [] if return_attn_probs else None
+
+        for i, layer in enumerate(self.layers):
+            residual = x
+            if layer.pre_layernorm:
+                x = layer.self_attn_layer_norm(x)
+
+            x, attn_probs = self._h2o_attention(
+                i, x, self.h2o_caches[i], positions,
+                return_attn_probs=return_attn_probs
+            )
+
+            x = residual + x
+
+            if not layer.pre_layernorm:
+                x = layer.self_attn_layer_norm(x)
+
+            residual = x
+            if layer.pre_layernorm:
+                x = layer.final_layer_norm(x)
+
+            x = layer.mlp(x)
+            x = residual + x
+
+            if not layer.pre_layernorm:
+                x = layer.final_layer_norm(x)
+
+            if return_attn_probs:
+                all_attn_probs.append(attn_probs)
+
+        # Final layer norm
+        if self.final_layer_norm is not None:
+            x = self.final_layer_norm(x)
+
+        # LM head
+        if self.lm_head_weight is not None:
+            logits = F.linear(x.to(self.lm_head_weight.dtype), self.lm_head_weight)
+        else:
+            logits = F.linear(x.to(self.embed_tokens.weight.dtype),
+                              self.embed_tokens.weight)
+
+        return logits, all_attn_probs
+
+    def prefill_h2o(self, token_ids, chunk_size=128):
+        """Layer-major chunked prefill with H2O on-the-fly compression.
+
+        For each layer:
+        1. Run full-attention prefill (all tokens)
+        2. Accumulate attention scores across chunks
+        3. Compress KV to budget using H2O eviction
+
+        Parameters
+        ----------
+        token_ids : torch.LongTensor [1, seq_len]
+        chunk_size : int
+
+        Returns
+        -------
+        logits : [1, seq_len, vocab_size]
+        """
+        assert hasattr(self, 'h2o_caches') and self.h2o_caches is not None, \
+            "Call init_h2o_caches() first"
+        self.reset_h2o_caches()
+
+        device = token_ids.device
+        seq_len = token_ids.shape[1]
+
+        # Position ids
+        positions = torch.arange(
+            self.position_offset,
+            self.position_offset + seq_len,
+            device=device, dtype=torch.long
+        )
+        position_ids = positions.unsqueeze(0)  # [1, seq_len]
+
+        # Token + position embeddings
+        x = self.embed_tokens(token_ids) + self.embed_positions(position_ids)
+        x = x.to(self.dtype)
+
+        for layer_idx, layer in enumerate(self.layers):
+            cache = self.h2o_caches[layer_idx]
+            cache.reset()
+
+            attn = layer.self_attn
+            bsz = 1
+
+            # Pre-LN
+            residual = x
+            if layer.pre_layernorm:
+                h = layer.self_attn_layer_norm(x)
+            else:
+                h = x
+
+            # Project full Q, K, V
+            q_full = attn.q_proj(h)
+            k_full_proj = attn.k_proj(h)
+            v_full_proj = attn.v_proj(h)
+
+            # Reshape
+            q_full = q_full.view(bsz, seq_len, attn.n_heads, attn.d_head
+                                 ).permute(0, 2, 1, 3).squeeze(0)
+            k_full_proj = k_full_proj.view(bsz, seq_len, attn.n_heads, attn.d_head
+                                           ).permute(0, 2, 1, 3).squeeze(0)
+            v_full_proj = v_full_proj.view(bsz, seq_len, attn.n_heads, attn.d_head
+                                           ).permute(0, 2, 1, 3).squeeze(0)
+
+            # Full causal attention in chunks to limit memory
+            attn_output = torch.zeros(self.n_heads, seq_len, attn.d_head,
+                                      device=device, dtype=self.dtype)
+            score_accum = torch.zeros(self.n_heads, seq_len,
+                                      device=device, dtype=torch.float32)
+
+            for start in range(0, seq_len, chunk_size):
+                end = min(start + chunk_size, seq_len)
+                q_chunk = q_full[:, start:end, :]  # [n_heads, chunk, d_head]
+
+                # Attention with all K up to position 'end'
+                # Causal: token at position i attends to 0..i
+                k_slice = k_full_proj[:, :end, :]  # [n_heads, end, d_head]
+                v_slice = v_full_proj[:, :end, :]
+
+                scores = torch.matmul(q_chunk, k_slice.transpose(1, 2)) * attn.scale
+                # [n_heads, chunk, end]
+
+                # Causal mask
+                chunk_len = end - start
+                causal = torch.ones(chunk_len, end, device=device, dtype=torch.bool)
+                for j in range(chunk_len):
+                    causal[j, start + j + 1:] = False
+                scores = scores.masked_fill(~causal.unsqueeze(0), float('-inf'))
+
+                probs = F.softmax(scores.float(), dim=-1).to(self.dtype)
+                attn_output[:, start:end, :] = torch.matmul(probs, v_slice)
+
+                # Accumulate scores: sum probs across query positions
+                # For initial H2O scoring, we sum how much each key position
+                # was attended to across all queries in this chunk
+                score_accum[:, :end] += probs.float().sum(dim=1)
+
+            # Output projection
+            attn_out = attn_output.unsqueeze(0).permute(0, 2, 1, 3).reshape(
+                bsz, seq_len, attn.d_model
+            )
+            attn_out = attn.out_proj(attn_out)
+
+            x = residual + attn_out
+            if not layer.pre_layernorm:
+                x = layer.self_attn_layer_norm(x)
+
+            # FFN
+            residual = x
+            if layer.pre_layernorm:
+                x = layer.final_layer_norm(x)
+            x = layer.mlp(x)
+            x = residual + x
+            if not layer.pre_layernorm:
+                x = layer.final_layer_norm(x)
+
+            # Initialize H2O cache with prefill KV and compress to budget
+            cache.init_from_prefill(k_full_proj, v_full_proj, positions, score_accum)
+
+        # Final layer norm
+        if self.final_layer_norm is not None:
+            x = self.final_layer_norm(x)
+
+        # LM head
+        if self.lm_head_weight is not None:
+            logits = F.linear(x.to(self.lm_head_weight.dtype), self.lm_head_weight)
+        else:
+            logits = F.linear(x.to(self.embed_tokens.weight.dtype),
+                              self.embed_tokens.weight)
+
+        return logits
+
+    @torch.no_grad()
+    def generate_greedy_h2o(self, prompt_ids, max_new_tokens=128,
+                             chunk_size=128):
+        """Greedy generation using H2O cache (Phase 2 baseline).
+
+        Parameters
+        ----------
+        prompt_ids : torch.LongTensor [1, prompt_len]
+        max_new_tokens : int
+        chunk_size : int
+
+        Returns
+        -------
+        generated_ids : list of int (prompt + generated)
+        """
+        device = prompt_ids.device
+
+        # Prefill with H2O
+        logits = self.prefill_h2o(prompt_ids, chunk_size=chunk_size)
+        next_token = logits[0, -1, :].argmax(dim=-1).item()
+
+        all_ids = prompt_ids[0].tolist() + [next_token]
+
+        for _ in range(max_new_tokens - 1):
+            if next_token == self.config.get('eos_token_id', 2):
+                break
+
+            input_ids = torch.tensor([[next_token]], device=device,
+                                     dtype=torch.long)
+
+            # Begin block for 1 token
+            for cache in self.h2o_caches:
+                cache.begin_block(1)
+
+            # Forward
+            logits, all_probs = self.forward_block_h2o(input_ids)
+            next_token = logits[0, -1, :].argmax(dim=-1).item()
+            all_ids.append(next_token)
+
+            # Commit 1 token, update scores, evict
+            for i, cache in enumerate(self.h2o_caches):
+                cache.commit(1)
+                if all_probs is not None and all_probs[i] is not None:
+                    cache.update_scores(all_probs[i], 1)
+                cache.evict_to_budget()
+
+        return all_ids
+
+    def total_h2o_memory_bytes(self):
+        """Total bytes used by all H2O caches."""
+        if not hasattr(self, 'h2o_caches') or self.h2o_caches is None:
+            return 0
+        return sum(c.memory_bytes() for c in self.h2o_caches)
+

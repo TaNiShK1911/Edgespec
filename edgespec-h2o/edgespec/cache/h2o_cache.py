@@ -317,51 +317,46 @@ class H2OCache(object):
 
         n_to_evict = n_valid - self.budget
 
-        # Per-head eviction
-        for h in range(self.n_heads):
-            # Get valid slots for this head
-            valid_mask_h = self.valid[h, :n_valid].clone()
-            positions_h = self.pos[h, :n_valid].clone()
-            scores_h = self.score[h, :n_valid].clone()
+        # All heads share identical token positions
+        pos_0 = self.pos[0, :n_valid]
+        valid_0 = self.valid[0, :n_valid]
+        valid_pos = pos_0[valid_0]
+        if len(valid_pos) > 0:
+            pos_min = valid_pos.min().item()
+            max_pos = valid_pos.max().item()
+        else:
+            pos_min = 0
+            max_pos = 0
 
-            # Find the maximum position to identify local window
-            max_pos = positions_h[valid_mask_h].max().item() if valid_mask_h.any() else 0
-            local_start = max_pos - self.n_local + 1
+        local_start = max_pos - self.n_local + 1
+        pin_threshold = pos_min + self.n_pin
 
-            # Build protection mask (vectorized across slots)
-            valid_pos = positions_h[valid_mask_h]
-            if len(valid_pos) > 0:
-                pos_min = valid_pos.min().item()
-                pin_threshold = pos_min + self.n_pin
-            else:
-                pin_threshold = self.n_pin
+        # Protection mask is identical across all heads: [n_valid]
+        protected = valid_0 & (
+            ((pos_0 >= 0) & (pos_0 < pin_threshold)) |
+            (pos_0 >= local_start)
+        )
 
-            protected = valid_mask_h & (
-                ((positions_h >= 0) & (positions_h < pin_threshold)) |
-                (positions_h >= local_start)
-            )
+        # Evictable mask per head: [n_heads, n_valid]
+        evictable = self.valid[:, :n_valid] & (~protected.unsqueeze(0))
+        if not evictable.any():
+            return
 
-            # Find evictable slots
-            evictable = valid_mask_h & ~protected
-            n_evictable = evictable.sum().item()
+        actual_evict = min(n_to_evict, int(evictable[0].sum().item()))
+        if actual_evict <= 0:
+            return
 
-            if n_evictable == 0:
-                continue
+        # Prepare scores: set non-evictable slots to a high sentinel value
+        scores_clone = self.score[:, :n_valid].clone()
+        scores_clone[~evictable] = 1e9
 
-            actual_evict = min(n_to_evict, n_evictable)
+        # Find the lowest-scoring slots for all heads in parallel on GPU
+        _, evict_indices = torch.topk(scores_clone, k=actual_evict, dim=1, largest=False)
 
-            # Get scores of evictable slots
-            evictable_indices = torch.where(evictable)[0]
-            evictable_scores = scores_h[evictable_indices]
-
-            # Find the lowest-scoring slots
-            _, sorted_idx = evictable_scores.sort()
-            evict_indices = evictable_indices[sorted_idx[:actual_evict]]
-
-            # Invalidate evicted slots
-            self.valid[h, evict_indices] = False
-            self.score[h, evict_indices] = 0.0
-            self.pos[h, evict_indices] = -1
+        # Invalidate evicted slots across all heads in parallel
+        self.valid.scatter_(1, evict_indices, False)
+        self.score.scatter_(1, evict_indices, 0.0)
+        self.pos.scatter_(1, evict_indices, -1)
 
         # Compact the buffer (move valid slots to front)
         self._compact()
@@ -376,21 +371,13 @@ class H2OCache(object):
         for h in range(self.n_heads):
             valid_idx = torch.where(self.valid[h])[0]
             n_v = len(valid_idx)
-            if n_v == 0:
-                continue
-            # If already contiguous at 0..n_v-1, nothing to do for this head
-            if valid_idx[-1].item() == n_v - 1:
+            if n_v == 0 or int(valid_idx[-1]) == n_v - 1:
                 continue
 
-            k_compact = self.k[h, valid_idx].clone()
-            v_compact = self.v[h, valid_idx].clone()
-            pos_compact = self.pos[h, valid_idx].clone()
-            score_compact = self.score[h, valid_idx].clone()
-
-            self.k[h, :n_v] = k_compact
-            self.v[h, :n_v] = v_compact
-            self.pos[h, :n_v] = pos_compact
-            self.score[h, :n_v] = score_compact
+            self.k[h, :n_v] = self.k[h, valid_idx]
+            self.v[h, :n_v] = self.v[h, valid_idx]
+            self.pos[h, :n_v] = self.pos[h, valid_idx]
+            self.score[h, :n_v] = self.score[h, valid_idx]
             self.valid[h, :n_v] = True
 
             # Clear trailing slots

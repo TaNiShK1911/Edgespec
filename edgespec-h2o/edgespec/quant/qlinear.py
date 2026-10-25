@@ -86,6 +86,17 @@ class QLinear(nn.Module):
         -------
         torch.Tensor [..., out_features]  float16
         """
+        if self.in_features >= 2048:
+            w = _dequantize_int4(
+                self.qweight, self.scales, self.zeros,
+                self.group_size, self.in_features
+            )
+            if x.dtype != w.dtype:
+                x = x.to(w.dtype)
+            out = F.linear(x, w, self.bias)
+            del w
+            return out
+
         weight_fp16 = self.dequantize()
         if x.dtype != weight_fp16.dtype:
             x = x.to(weight_fp16.dtype)

@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "lenience": 1.0,
+      "acceptance_rate": 0.202
+    },
+    {
+      "lenience": 0.8,
+      "acceptance_rate": 0.2625
+    },
+    {
+      "lenience": 0.6,
+      "acceptance_rate": 0.33275
+    },
+    {
+      "lenience": 0.45,
+      "acceptance_rate": 0.45475
+    },
+    {
+      "lenience": 0.3,
+      "acceptance_rate": 0.59125
+    }
+  ],
+  "monotonic": true,
+  "violations": [],
+  "pass": true
+}

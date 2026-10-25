@@ -24,7 +24,12 @@ edgespec-h2o/data/weights/*.pt
 edgespec-h2o/data/weights/*.bin
 edgespec-h2o/data/weights/*.safetensors
 edgespec-h2o/data/weights/*.edgespec
+edgespec-h2o/data/models/
+data/models/
 *.edgespec
+*.bin
+*.pt
+*.safetensors
 edgespec-h2o/data/golden/*.pt
 edgespec-h2o/data/golden/**/*.pt
 edgespec-h2o/data/golden/*.bin

@@ -1,0 +1,73 @@
+{
+  "gate": 3,
+  "passed": 5,
+  "failed": 3,
+  "total": 8,
+  "overall": "FAIL",
+  "device": "cuda",
+  "model": "opt-125m",
+  "gamma": 4,
+  "lenience": 1.0,
+  "g3_4_speedup": {
+    "mean_speedup": 1.196,
+    "details": [
+      {
+        "prompt": "golden_0",
+        "speedup": 1.507,
+        "tier": "pass",
+        "A_tok_s": 15.8,
+        "D_tok_s": 23.9
+      },
+      {
+        "prompt": "golden_1",
+        "speedup": 1.451,
+        "tier": "below",
+        "A_tok_s": 15.9,
+        "D_tok_s": 23.1
+      },
+      {
+        "prompt": "short_32",
+        "speedup": 1.427,
+        "tier": "below",
+        "A_tok_s": 15.9,
+        "D_tok_s": 22.8
+      },
+      {
+        "prompt": "logs_256",
+        "speedup": 0.401,
+        "tier": "below",
+        "A_tok_s": 15.6,
+        "D_tok_s": 6.2
+      }
+    ],
+    "pass": true,
+    "speedup_pass_threshold": 1.5
+  },
+  "g3_6_lenience": {
+    "results": [
+      {
+        "lenience": 1.0,
+        "acceptance_rate": 0.202
+      },
+      {
+        "lenience": 0.8,
+        "acceptance_rate": 0.2625
+      },
+      {
+        "lenience": 0.6,
+        "acceptance_rate": 0.33275
+      },
+      {
+        "lenience": 0.45,
+        "acceptance_rate": 0.45475
+      },
+      {
+        "lenience": 0.3,
+        "acceptance_rate": 0.59125
+      }
+    ],
+    "monotonic": true,
+    "violations": [],
+    "pass": true
+  }
+}

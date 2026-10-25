@@ -1,0 +1,21 @@
+{
+  "banner": "*** SYNTHETIC DATA \u2014 NOT FROM REAL TRAFFIC ***",
+  "timestamp": "20261025_032623",
+  "results": {
+    "test": true,
+    "grounding_test": {
+      "grounded_count": 5,
+      "total_entities": 8,
+      "grounded_fraction": 0.625,
+      "ungrounded_entities": [
+        "IP: 999.999.999.999"
+      ],
+      "stripped_output": "150 requests from 22 IPs. Top path /api/v1/users with 50 hits from IP 10.0.0.1. Also [UNGROUNDED] was seen."
+    },
+    "windows": [
+      42,
+      20,
+      20
+    ]
+  }
+}

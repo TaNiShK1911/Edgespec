@@ -40,9 +40,29 @@ def _get_device():
 
 
 def _get_ram_mib():
-    """Best-effort system RAM reading."""
+    """Per-process VmRSS in MiB (preferred) with system-wide fallback.
+
+    Returns
+    -------
+    float
+        Resident set size in MiB for this process, or system-wide used
+        RAM as a fallback on platforms without /proc/self/status.
+    """
+    # Preferred: per-process VmRSS from /proc/self/status (Linux / Jetson)
+    try:
+        with open('/proc/self/status', 'r') as f:
+            for line in f:
+                if line.startswith('VmRSS:'):
+                    return int(line.split()[1]) / 1024.0  # kB -> MiB
+    except Exception:
+        pass
+    # Second choice: CUDA allocator
+    if torch.cuda.is_available():
+        return torch.cuda.memory_allocated() / (1024 * 1024)
+    # Last resort: system-wide used RAM (NOTE: this is NOT per-process)
     try:
         with open('/proc/meminfo', 'r') as f:
+            total = 0
             for line in f:
                 if line.startswith('MemTotal:'):
                     total = int(line.split()[1]) / 1024.0
@@ -50,8 +70,6 @@ def _get_ram_mib():
                     return total - int(line.split()[1]) / 1024.0
     except Exception:
         pass
-    if torch.cuda.is_available():
-        return torch.cuda.memory_allocated() / (1024 * 1024)
     return 0.0
 
 
@@ -180,6 +198,14 @@ def benchmark_mode_c(model, prompt_ids, max_new_tokens=64,
     t_total = time.time() - t0
 
     n = gen_stats['n_generated']
+    # mean_accepted_per_step = total new tokens emitted / total verify steps
+    # This equals (accepted + bonus) / steps and is always >= 1.0 for a
+    # correct spec loop.  The old verifier stat 'mean_accepted_per_step'
+    # counted only *draft* tokens accepted (excluding the bonus correction),
+    # giving values < 1 when acceptance was low.  We use total_tokens/steps.
+    total_tokens_emitted = gen_stats.get('total_tokens', n)
+    total_steps = max(1, gen_stats.get('total_steps', 1))
+    corrected_mean_accepted = total_tokens_emitted / total_steps
     return {
         'mode': 'C',
         'spec': True,
@@ -188,7 +214,7 @@ def benchmark_mode_c(model, prompt_ids, max_new_tokens=64,
         'decode_tok_s': n / t_total if t_total > 0 else 0,
         'n_generated': n,
         'alpha_hat': gen_stats.get('alpha_hat', 0),
-        'mean_accepted_per_step': gen_stats.get('mean_accepted_per_step', 0),
+        'mean_accepted_per_step': corrected_mean_accepted,
         'kv_bytes': model.total_h2o_memory_bytes(),
         'peak_ram_mib': _get_ram_mib(),
         'generated_ids': all_ids[prompt_ids.shape[1]:],
@@ -225,6 +251,10 @@ def benchmark_mode_d(model, prompt_ids, max_new_tokens=64,
     t_total = time.time() - t0
 
     n = gen_stats['n_generated']
+    # Same corrected mean_accepted_per_step: total tokens / total steps >= 1.0
+    total_tokens_emitted = gen_stats.get('total_tokens', n)
+    total_steps = max(1, gen_stats.get('total_steps', 1))
+    corrected_mean_accepted = total_tokens_emitted / total_steps
     return {
         'mode': 'D',
         'spec': True,
@@ -233,7 +263,7 @@ def benchmark_mode_d(model, prompt_ids, max_new_tokens=64,
         'decode_tok_s': n / t_total if t_total > 0 else 0,
         'n_generated': n,
         'alpha_hat': gen_stats.get('alpha_hat', 0),
-        'mean_accepted_per_step': gen_stats.get('mean_accepted_per_step', 0),
+        'mean_accepted_per_step': corrected_mean_accepted,
         'kv_bytes': model.total_h2o_memory_bytes(),
         'peak_ram_mib': _get_ram_mib(),
         'generated_ids': all_ids[prompt_ids.shape[1]:],
@@ -358,6 +388,58 @@ def _print_speedup_summary(results):
                 d_alpha[0] if d_alpha else 0))
 
 
+def _load_real_prompts(device, config, n_short=1, n_log=1, n_golden=2):
+    """Build a mixed prompt list with real golden text and synthetic log patterns.
+
+    Returns list of (name, tensor) pairs.
+    """
+    import json as _json
+    prompts = []
+    vocab_size = config['vocab_size']
+
+    # 1. Real golden-text prompts (diverse English prose, code, URLs, logs)
+    golden_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'data', 'golden', 'opt-125m', 'golden_token_ids.json'
+    )
+    n_golden_loaded = 0
+    if os.path.isfile(golden_path):
+        try:
+            with open(golden_path) as f:
+                golden_data = _json.load(f)
+            for entry in golden_data:
+                ids = entry.get('token_ids', [])
+                if len(ids) >= 16:
+                    ids = ids[:256]  # cap at 256 tokens
+                    t = torch.tensor([ids], device=device, dtype=torch.long)
+                    prompts.append(('golden_%d' % n_golden_loaded, t))
+                    n_golden_loaded += 1
+                    if n_golden_loaded >= n_golden:
+                        break
+        except Exception as e:
+            print('  [bench_matrix] Warning: could not load golden prompts: %s' % e)
+
+    # 2. Synthetic short prompt (random, for baseline)
+    if n_short > 0:
+        short = torch.randint(10, vocab_size, (1, 32), device=device, dtype=torch.long)
+        prompts.append(('short_32', short))
+
+    # 3. Log-style prompt: repetitive pattern mimicking tokenised CLF log fields
+    # Range 10..49 repeating = similar to IP octet / status code repetition
+    if n_log > 0:
+        log_tokens = list(range(10, 50)) * 8  # 320 tokens
+        log_prompt = torch.tensor([log_tokens[:256]], device=device, dtype=torch.long)
+        prompts.append(('logs_256', log_prompt))
+
+    # Fallback: if nothing loaded, use a couple of random prompts
+    if not prompts:
+        for i in range(2):
+            t = torch.randint(10, vocab_size, (1, 64), device=device, dtype=torch.long)
+            prompts.append(('fallback_%d' % i, t))
+
+    return prompts
+
+
 def main():
     parser = argparse.ArgumentParser(description='EdgeSpec-H2O benchmark matrix')
     parser.add_argument('--model-size', type=str, default='125m',
@@ -378,8 +460,12 @@ def main():
     config = OPT_CONFIGS[model_key]
     dtype = torch.float16
 
-    print("=== EdgeSpec-H2O Benchmark Matrix ===")
-    print("Model: %s, Device: %s" % (model_key, device))
+    print('=== EdgeSpec-H2O Benchmark Matrix ===')
+    print('Model: %s, Device: %s' % (model_key, device))
+
+    # Measure idle RAM before loading model
+    idle_ram_mib = _get_ram_mib()
+    print('Idle VmRSS: %.1f MiB' % idle_ram_mib)
 
     weights_cand = args.weights
     if not weights_cand or not os.path.isfile(weights_cand):
@@ -399,32 +485,30 @@ def main():
         model = model.to(device)
     model.eval()
 
-    # Create test prompts
-    prompts = []
-    # Short prompt
-    short = torch.randint(10, config['vocab_size'], (1, 32),
-                          device=device, dtype=torch.long)
-    prompts.append(('short_32', short))
+    model_ram_mib = _get_ram_mib()
+    print('VmRSS after model load: %.1f MiB (delta=+%.1f MiB)' % (
+        model_ram_mib, model_ram_mib - idle_ram_mib))
 
-    # Medium prompt
-    medium = torch.randint(10, config['vocab_size'], (1, 128),
-                           device=device, dtype=torch.long)
-    prompts.append(('medium_128', medium))
+    # Build prompt list: real golden + log + short
+    prompts = _load_real_prompts(device, config,
+                                  n_short=1, n_log=1, n_golden=2)
+    print('\nPrompts: %s' % ', '.join('%s(%d)' % (n, p.shape[1]) for n, p in prompts))
 
-    # Log-style prompt (repetitive — should favour the drafter)
-    log_tokens = list(range(10, 50)) * 8  # repetitive pattern
-    log_prompt = torch.tensor([log_tokens[:256]], device=device, dtype=torch.long)
-    prompts.append(('logs_256', log_prompt))
-
-    print("\nRunning benchmark matrix...")
+    print('\nRunning benchmark matrix...')
     results = run_benchmark_matrix(
         model, prompts, max_new_tokens=args.max_new_tokens,
         n_hh=args.n_hh, n_local=args.n_local, decay=args.decay,
         gamma=args.gamma, lenience=args.lenience,
     )
 
+    # Annotate with idle baseline
+    for r in results:
+        r['idle_ram_mib'] = idle_ram_mib
+        if 'peak_ram_mib' in r:
+            r['peak_ram_delta_mib'] = r['peak_ram_mib'] - idle_ram_mib
+
     save_results(results, args.output_dir)
-    print("\nDone.")
+    print('\nDone.')
 
 
 if __name__ == '__main__':

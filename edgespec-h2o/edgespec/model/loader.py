@@ -33,6 +33,7 @@ import struct
 import sys
 
 import torch
+import torch.nn as nn
 
 from edgespec.config import OPT_CONFIGS
 from edgespec.model.opt import OPTModel
@@ -243,8 +244,8 @@ def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
         t = torch.frombuffer(bytearray(raw), dtype=tdtype).reshape(meta['shape'])
         return t
 
-    # Build the model skeleton
-    model = OPTModel(config, dtype=dtype)
+    # Build the model skeleton with empty_init=True to avoid allocating 4.8 GB dummy weights
+    model = OPTModel(config, dtype=dtype, empty_init=True)
     n_layers = config['n_layers']
 
     # 1. Embeddings
@@ -253,9 +254,10 @@ def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
             raise KeyError("Missing mandatory embedding tensor: %s" % emb_name)
         t = read_tensor_from_meta(alias_map[emb_name]).to(device).to(dtype)
         if emb_name == 'embed_tokens.weight':
-            model.embed_tokens.weight.data.copy_(t)
+            model.embed_tokens = nn.Embedding(config['vocab_size'], config['d_model'], _weight=t)
         else:
-            model.embed_positions.weight.data.copy_(t)
+            model.embed_positions = nn.Embedding(config['max_positions'] + model.position_offset,
+                                                config['d_model'], _weight=t)
 
     # Final layer norm (decoder-level)
     if model.final_layer_norm is not None:
@@ -324,18 +326,23 @@ def load_model(filepath, device='cuda', dtype=torch.float16, quantized=True):
 
                 if 'self_attn' in lin:
                     proj = lin.split('.')[-1]
-                    mod = getattr(layer.self_attn, proj)
+                    mod = nn.Linear(w.shape[1], w.shape[0], bias=bias is not None).to(device).to(dtype)
                     mod.weight.data.copy_(w)
                     if bias is not None and mod.bias is not None:
                         mod.bias.data.copy_(bias)
+                    setattr(layer.self_attn, proj, mod)
                 elif lin == 'fc1':
-                    layer.fc1.weight.data.copy_(w)
-                    if bias is not None and layer.fc1.bias is not None:
-                        layer.fc1.bias.data.copy_(bias)
+                    mod = nn.Linear(w.shape[1], w.shape[0], bias=bias is not None).to(device).to(dtype)
+                    mod.weight.data.copy_(w)
+                    if bias is not None and mod.bias is not None:
+                        mod.bias.data.copy_(bias)
+                    layer.mlp.fc1 = mod
                 elif lin == 'fc2':
-                    layer.fc2.weight.data.copy_(w)
-                    if bias is not None and layer.fc2.bias is not None:
-                        layer.fc2.bias.data.copy_(bias)
+                    mod = nn.Linear(w.shape[1], w.shape[0], bias=bias is not None).to(device).to(dtype)
+                    mod.weight.data.copy_(w)
+                    if bias is not None and mod.bias is not None:
+                        mod.bias.data.copy_(bias)
+                    layer.mlp.fc2 = mod
 
     # 3. Strict validation: check for unknown tensors in checkpoint
     known_roots = {'embed_tokens', 'embed_positions', 'final_layer_norm', 'lm_head', 'lm_head_weight'}

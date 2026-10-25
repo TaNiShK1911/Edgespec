@@ -1,0 +1,26 @@
+{
+  "session_version": "1.0",
+  "timestamp": "20261025_041237",
+  "prompt_text": "172.16.0.1 - - [01/Jan/2024:00:00:01 +0000] \"GET /api/health HTTP/1.1\" 200 512 \"-\" \"EdgeSpec-Monitor/1.0\"",
+  "prompt_len": 52,
+  "max_new_tokens": 32,
+  "model": "opt-125m",
+  "device": "cuda",
+  "gamma": 4,
+  "lenience": 1.0,
+  "mode_A": {
+    "tok_s": 8.935866727500652,
+    "n_generated": 32,
+    "latency_s": 3.5810739994049072
+  },
+  "mode_D": {
+    "tok_s": 19.186070294079894,
+    "n_generated": 32,
+    "latency_s": 1.6678767204284668,
+    "alpha_hat": 0.8928571428571429,
+    "mean_accepted_per_step": 3.5
+  },
+  "speedup": 2.1470855462776366,
+  "tier": "target",
+  "pass": true
+}

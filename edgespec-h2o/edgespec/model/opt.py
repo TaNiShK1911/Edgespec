@@ -103,17 +103,23 @@ class OPTAttention(nn.Module):
     Optionally returns attention probabilities for H2O scoring.
     """
 
-    def __init__(self, d_model, n_heads, dtype=torch.float16):
+    def __init__(self, d_model, n_heads, dtype=torch.float16, empty_init=False):
         super(OPTAttention, self).__init__()
         self.d_model = d_model
         self.n_heads = n_heads
         self.d_head = d_model // n_heads
         self.scale = 1.0 / math.sqrt(self.d_head)
 
-        self.q_proj = nn.Linear(d_model, d_model, bias=True)
-        self.k_proj = nn.Linear(d_model, d_model, bias=True)
-        self.v_proj = nn.Linear(d_model, d_model, bias=True)
-        self.out_proj = nn.Linear(d_model, d_model, bias=True)
+        if empty_init:
+            self.q_proj = None
+            self.k_proj = None
+            self.v_proj = None
+            self.out_proj = None
+        else:
+            self.q_proj = nn.Linear(d_model, d_model, bias=True)
+            self.k_proj = nn.Linear(d_model, d_model, bias=True)
+            self.v_proj = nn.Linear(d_model, d_model, bias=True)
+            self.out_proj = nn.Linear(d_model, d_model, bias=True)
 
     def forward(self, x, kv_cache, positions, return_attn_probs=False):
         """
@@ -184,10 +190,14 @@ class OPTAttention(nn.Module):
 class OPTMLP(nn.Module):
     """OPT feed-forward network: Linear → ReLU → Linear."""
 
-    def __init__(self, d_model, d_ffn, dtype=torch.float16):
+    def __init__(self, d_model, d_ffn, dtype=torch.float16, empty_init=False):
         super(OPTMLP, self).__init__()
-        self.fc1 = nn.Linear(d_model, d_ffn, bias=True)
-        self.fc2 = nn.Linear(d_ffn, d_model, bias=True)
+        if empty_init:
+            self.fc1 = None
+            self.fc2 = None
+        else:
+            self.fc1 = nn.Linear(d_model, d_ffn, bias=True)
+            self.fc2 = nn.Linear(d_ffn, d_model, bias=True)
 
     def forward(self, x):
         h = self.fc1(x)
@@ -202,15 +212,15 @@ class OPTDecoderLayer(nn.Module):
     """One transformer block for OPT (pre-LN variant for 350M+)."""
 
     def __init__(self, d_model, n_heads, d_ffn, pre_layernorm=True,
-                 layer_norm_eps=1e-5, dtype=torch.float16):
+                 layer_norm_eps=1e-5, dtype=torch.float16, empty_init=False):
         super(OPTDecoderLayer, self).__init__()
         self.pre_layernorm = pre_layernorm
 
         self.self_attn_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
-        self.self_attn = OPTAttention(d_model, n_heads, dtype=dtype)
+        self.self_attn = OPTAttention(d_model, n_heads, dtype=dtype, empty_init=empty_init)
 
         self.final_layer_norm = LayerNorm(d_model, eps=layer_norm_eps)
-        self.mlp = OPTMLP(d_model, d_ffn, dtype=dtype)
+        self.mlp = OPTMLP(d_model, d_ffn, dtype=dtype, empty_init=empty_init)
 
     def __setattr__(self, name, value):
         if name in ("fc1", "fc2") and hasattr(self, "mlp"):
@@ -282,13 +292,15 @@ class OPTModel(nn.Module):
     - Optional attention probability return (for H2O)
     """
 
-    def __init__(self, config, dtype=torch.float16):
+    def __init__(self, config, dtype=torch.float16, empty_init=False):
         """
         Parameters
         ----------
         config : dict
             One of the dicts from edgespec.config.OPT_CONFIGS.
         dtype : torch.dtype
+        empty_init : bool
+            If True, avoids allocating full dummy FP32 weights for layers.
         """
         super(OPTModel, self).__init__()
         self.config = config
@@ -311,9 +323,13 @@ class OPTModel(nn.Module):
         self.position_offset = config.get('position_offset', 2)
 
         # Embeddings
-        self.embed_tokens = nn.Embedding(vocab_size, d_model)
-        self.embed_positions = nn.Embedding(max_positions + self.position_offset,
-                                            d_model)
+        if empty_init:
+            self.embed_tokens = nn.Embedding(1, 1)
+            self.embed_positions = nn.Embedding(1, 1)
+        else:
+            self.embed_tokens = nn.Embedding(vocab_size, d_model)
+            self.embed_positions = nn.Embedding(max_positions + self.position_offset,
+                                                d_model)
 
         # Optional project_in/project_out (only for some OPT variants)
         # OPT-125M, 1.3B don't use these — d_model == word_embed_proj_dim
@@ -321,7 +337,7 @@ class OPTModel(nn.Module):
         # Decoder layers
         self.layers = nn.ModuleList([
             OPTDecoderLayer(d_model, n_heads, d_ffn, pre_layernorm=pre_ln,
-                            layer_norm_eps=ln_eps, dtype=dtype)
+                            layer_norm_eps=ln_eps, dtype=dtype, empty_init=empty_init)
             for _ in range(n_layers)
         ])
 
@@ -423,6 +439,8 @@ class OPTModel(nn.Module):
 
         return logits, all_attn_probs
 
+    forward = forward_block
+
     def prefill_chunked(self, token_ids, chunk_size=128, return_attn_probs=False):
         """Layer-major chunked prefill.
 
@@ -476,11 +494,12 @@ class OPTModel(nn.Module):
         if self.final_layer_norm is not None:
             x = self.final_layer_norm(x)
 
-        # LM head
+        # LM head (only compute for the last position needed for next-token prediction)
+        last_x = x[:, -1:, :]
         if self.lm_head_weight is not None:
-            logits = F.linear(x.to(self.lm_head_weight.dtype), self.lm_head_weight)
+            logits = F.linear(last_x.to(self.lm_head_weight.dtype), self.lm_head_weight)
         else:
-            logits = F.linear(x.to(self.embed_tokens.weight.dtype),
+            logits = F.linear(last_x.to(self.embed_tokens.weight.dtype),
                               self.embed_tokens.weight)
 
         return logits
